@@ -7,6 +7,16 @@ et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.3.1] — 2026-02-24
+
+### 🐛 Corrections
+
+- **Correction critique Ubuntu 24.04+** : le script d'installation créait un environnement virtuel Python dans `/opt/pronote-desktop` mais le script de lancement cherchait dans `/usr/lib/pronote-desktop`. Les deux chemins sont maintenant cohérents (`/usr/lib/pronote-desktop/python-env`).
+- **Compatibilité PEP 668** : les dépendances Python (pronotepy, flask, flask-cors) sont installées dans un environnement virtuel isolé au lieu du système, évitant l'erreur `externally-managed-environment` sur Ubuntu 24.04+.
+- **Script de lancement amélioré** : utilise automatiquement le venv si disponible, sinon bascule sur Python système en fallback.
+
+---
+
 ## [1.3.0] — 2026-02-24
 
 ### ✨ Nouveautés
