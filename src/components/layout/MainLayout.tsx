@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Menu, Bell, Sun, Moon } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, type Transition } from 'framer-motion';
 import Sidebar from './Sidebar';
 import { useAuthStore } from '../../lib/store/authStore';
+
+const API_BASE = 'http://127.0.0.1:5174/api';
+
+const getInitialTheme = (): boolean => {
+  try {
+    const stored = localStorage.getItem('pronote_dark_mode');
+    if (stored !== null) return stored === 'true';
+  } catch {}
+  return false;
+};
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -11,7 +21,7 @@ const pageVariants = {
   exit: { opacity: 0, y: -8 },
 };
 
-const pageTransition = {
+const pageTransition: Transition = {
   type: 'tween',
   ease: 'easeInOut',
   duration: 0.22,
@@ -19,9 +29,25 @@ const pageTransition = {
 
 const MainLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState<boolean>(getInitialTheme);
   const { clientInfo } = useAuthStore();
   const location = useLocation();
+
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('pronote_dark_mode', String(next));
+        // Persister dans config.json via l'API (non bloquant)
+        fetch(`${API_BASE}/config`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ theme: next ? 'dark' : 'light' }),
+        }).catch(() => {});
+      } catch {}
+      return next;
+    });
+  }, []);
 
   return (
     <div className={`flex h-screen overflow-hidden ${darkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
@@ -66,7 +92,7 @@ const MainLayout: React.FC = () => {
 
             {/* Dark mode */}
             <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={toggleDarkMode}
               className={`p-2 rounded-lg transition-all duration-300 ${
                 darkMode
                   ? 'hover:bg-gray-700 text-yellow-400'

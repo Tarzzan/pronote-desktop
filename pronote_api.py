@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Pronote Desktop — Serveur API Python (proxy pronotepy)
-Version: 1.2.0
+Version: 1.5.0
 Ce serveur Flask fait le pont entre l'interface React et l'API Pronote
 via la bibliothèque pronotepy.
 """
@@ -9,9 +9,28 @@ via la bibliothèque pronotepy.
 import pronotepy
 import datetime
 import json
+import os
+import subprocess
 import traceback
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+
+# --- Configuration ---
+CONFIG_PATH = os.environ.get('PRONOTE_CONFIG', '/etc/pronote-desktop/config.json')
+
+def load_config():
+    """Charge la configuration depuis config.json, avec valeurs par défaut."""
+    defaults = {"api_port": 5174, "check_updates": True, "theme": "light"}
+    try:
+        if os.path.exists(CONFIG_PATH):
+            with open(CONFIG_PATH) as f:
+                data = json.load(f)
+                defaults.update(data)
+    except Exception:
+        pass
+    return defaults
+
+CONFIG = load_config()
 
 app = Flask(__name__)
 CORS(app, origins=["*"])
@@ -132,7 +151,7 @@ def info_to_dict(i) -> dict:
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    return jsonify({"status": "ok", "version": "1.2.0"})
+    return jsonify({"status": "ok", "version": "1.5.0"})
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -317,5 +336,52 @@ def delays():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/notify', methods=['POST'])
+def notify():
+    """Envoie une notification desktop via libnotify (notify-send)."""
+    try:
+        data = request.get_json() or {}
+        title = str(data.get('title', 'Pronote Desktop'))[:100]
+        body = str(data.get('body', ''))[:300]
+        urgency = data.get('urgency', 'normal')
+        if urgency not in ('low', 'normal', 'critical'):
+            urgency = 'normal'
+        result = subprocess.run(
+            ['notify-send', '-a', 'Pronote Desktop', '-u', urgency, '--', title, body],
+            capture_output=True, timeout=5
+        )
+        return jsonify({"sent": result.returncode == 0})
+    except FileNotFoundError:
+        return jsonify({"sent": False, "error": "notify-send not available"}), 200
+    except Exception as e:
+        return jsonify({"sent": False, "error": str(e)}), 200
+
+
+@app.route('/api/config', methods=['GET'])
+def get_config():
+    """Retourne la configuration publique (sans secrets)."""
+    cfg = load_config()
+    return jsonify({"api_port": cfg.get('api_port', 5174), "theme": cfg.get('theme', 'light')})
+
+
+@app.route('/api/config', methods=['PATCH'])
+def patch_config():
+    """Met à jour des clés de configuration (theme uniquement via API)."""
+    try:
+        updates = request.get_json() or {}
+        allowed = {'theme'}
+        cfg = load_config()
+        for k, v in updates.items():
+            if k in allowed:
+                cfg[k] = v
+        os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+        with open(CONFIG_PATH, 'w') as f:
+            json.dump(cfg, f, indent=2)
+        return jsonify({"updated": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5174, debug=False)
+    port = CONFIG.get('api_port', 5174)
+    app.run(host='127.0.0.1', port=port, debug=False)

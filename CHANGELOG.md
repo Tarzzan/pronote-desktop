@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.5.0] — 2026-02-24
+
+### Corrections de bugs
+- Cohérence des versions dans tous les fichiers (pronote_api.py, Sidebar, LoginPage, ErrorBoundary, PlaceholderPage étaient tous sur des versions différentes)
+- Correction du dépôt GitHub hardcodé dans ErrorBoundary (`pronote-desktop/pronote-desktop` → `Tarzzan/pronote-desktop`)
+- Correction TypeScript dans BulletinsPage (passage d'un objet Period au lieu d'un string à getGrades)
+- Correction TypeScript dans MainLayout (type Transition de framer-motion)
+
+### Nouvelles fonctionnalités
+- **Port configurable** : le port API (5174 par défaut) est maintenant lu depuis `/etc/pronote-desktop/config.json`
+- **Persistance du thème sombre** : le thème est sauvegardé dans localStorage et dans config.json
+- **Notifications desktop** : nouvel endpoint `/api/notify` (POST) utilisant libnotify/notify-send
+- **Endpoint /api/config** : GET pour lire la configuration, PATCH pour modifier le thème
+- **Icône SVG scalable** : ajout de `pronote-desktop.svg` dans hicolor/scalable/apps
+- **Captures d'écran AppStream** : 3 captures (dashboard, emploi du temps, notes) pour GNOME Software / KDE Discover
+- **Dépendance libnotify-bin** déclarée dans le paquet
+
+
 Toutes les modifications notables de ce projet sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),

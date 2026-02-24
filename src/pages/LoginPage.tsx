@@ -61,7 +61,7 @@ const LoginPage: React.FC = () => {
           </div>
           <h1 className="text-2xl font-bold">PRONOTE</h1>
           <p className="text-blue-200 text-sm mt-1">Application de bureau — Linux / macOS</p>
-          <p className="text-blue-300 text-xs mt-1">v1.2.0</p>
+          <p className="text-blue-300 text-xs mt-1">v1.5.0</p>
         </div>
 
         {/* Formulaire */}

@@ -14,8 +14,8 @@ interface ErrorBoundaryState {
 
 // ─── Utilitaire : ouvrir une Issue GitHub ─────────────────────────────────────
 function openGitHubIssue(error: Error, errorInfo: React.ErrorInfo | null): void {
-  const GITHUB_REPO = 'pronote-desktop/pronote-desktop'; // ← À remplacer par votre dépôt
-  const version = '1.1.0';
+  const GITHUB_REPO = 'Tarzzan/pronote-desktop'; // ← À remplacer par votre dépôt
+  const version = '1.5.0';
   const platform = navigator.platform || 'Linux';
 
   const title = `[Bug] ${error.message.substring(0, 80)}`;

@@ -48,7 +48,10 @@ const BulletinsPage: React.FC = () => {
     const client = getClient();
     if (!client) return;
     try {
-      const gradesData = await client.getGrades(periodId);
+      const periodsData = await client.getPeriods();
+      const periodObj = periodsData.find((p: Period) => p.id === periodId) || periodsData[0];
+      if (!periodObj) return;
+      const gradesData = await client.getGrades(periodObj);
       // Agréger par matière
       const bySubject: Record<string, number[]> = {};
       gradesData.forEach((g: any) => {

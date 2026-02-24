@@ -312,7 +312,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
             </div>
             <div>
               <div className="text-white font-black text-sm tracking-wider">PRONOTE</div>
-              <div className="text-blue-300 text-xs font-mono">✨ v1.3.0</div>
+              <div className="text-blue-300 text-xs font-mono">✨ v1.5.0</div>
             </div>
           </div>
           <button onClick={onToggle} className="text-blue-300 hover:text-white lg:hidden transition-colors">

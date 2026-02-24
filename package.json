@@ -1,7 +1,7 @@
 {
   "name": "pronote-desktop",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.5.0",
   "type": "module",
   "main": "electron/main.cjs",
   "description": "Application native Pronote pour Linux et macOS",
@@ -31,7 +31,7 @@
   "build": {
     "appId": "fr.pronote.desktop",
     "productName": "Pronote Desktop",
-    "copyright": "Copyright © 2026 Pronote Desktop Contributors",
+    "copyright": "Copyright \u00a9 2026 Pronote Desktop Contributors",
     "directories": {
       "output": "release",
       "buildResources": "build-resources"

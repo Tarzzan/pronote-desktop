@@ -1,5 +1,5 @@
 #!/bin/bash
-# Post-installation script for pronote-desktop v1.4.0 (offline)
+# Post-installation script for pronote-desktop v1.5.0 (offline)
 # Installation 100% hors-ligne — aucun appel réseau effectué
 set -e
 
@@ -11,7 +11,7 @@ CONFIG_DIR="/etc/pronote-desktop"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 
 echo "============================================"
-echo " Pronote Desktop v1.4.0 — Installation"
+echo " Pronote Desktop v1.5.0 — Installation"
 echo "============================================"
 
 # --- 1. Icônes et bureau ---
@@ -25,7 +25,7 @@ mkdir -p "$CONFIG_DIR"
 if [ ! -f "$CONFIG_FILE" ]; then
     cat > "$CONFIG_FILE" << 'CONFIG'
 {
-  "version": "1.4.0",
+  "version": "1.5.0",
   "theme": "light",
   "check_updates": true,
   "api_port": 5174,
@@ -86,7 +86,7 @@ fi
 
 echo ""
 echo "============================================"
-echo " Pronote Desktop v1.4.0 installé !"
+echo " Pronote Desktop v1.5.0 installé !"
 echo " Lancez l'application :"
 echo "   • Menu Applications > Éducation"
 echo "   • Commande : pronote-desktop"
