@@ -52,7 +52,7 @@ const PlaceholderPage: React.FC = () => {
           Cette section est en cours de développement. Elle sera disponible dans une prochaine version de l'application.
         </p>
         <div className="mt-4 text-xs text-gray-400 bg-gray-50 px-4 py-2 rounded-full inline-block">
-          v1.0.0 — Pronote Desktop
+          v1.2.0 — Pronote Desktop
         </div>
       </div>
     </div>

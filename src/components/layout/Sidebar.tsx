@@ -240,7 +240,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
             </div>
             <div>
               <div className="text-white font-bold text-sm">PRONOTE</div>
-              <div className="text-blue-300 text-xs">v1.0.0</div>
+              <div className="text-blue-300 text-xs">v1.2.0</div>
             </div>
           </div>
           <button onClick={onToggle} className="text-blue-300 hover:text-white lg:hidden">
