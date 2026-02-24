@@ -1,5 +1,5 @@
 /**
- * Pronote Desktop — Client API v1.2.0
+ * Pronote Desktop — Client API v1.6.0
  * Connexion réelle à l'API Pronote via le serveur proxy Python (pronotepy)
  * Le serveur Python tourne sur http://127.0.0.1:5174 et expose une API REST
  */

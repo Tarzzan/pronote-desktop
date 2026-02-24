@@ -202,7 +202,14 @@ const menuItems: MenuItem[] = [
       { id: 'casier', label: 'Casier numérique', icon: <IconBriefcase />, path: '/casier' },
       { id: 'informations', label: 'Informations & sondages', icon: <IconBell />, path: '/informations', badge: 4 },
       { id: 'discussions', label: 'Discussions', icon: <IconMessage />, path: '/messaging', badge: 2 },
+      { id: 'nouveau-message', label: 'Nouveau message', icon: <IconMessage />, path: '/messaging/new' },
     ],
+  },
+  {
+    id: 'parametres',
+    label: 'Paramètres',
+    icon: <IconBriefcase />,
+    path: '/settings',
   },
 ];
 

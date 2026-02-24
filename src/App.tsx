@@ -14,6 +14,10 @@ import PlaceholderPage from "./pages/PlaceholderPage";
 import BulletinsPage from "./pages/BulletinsPage";
 import CompetencesPage from "./pages/CompetencesPage";
 import QCMPage from "./pages/QCMPage";
+import AttendanceCallPage from "./pages/AttendanceCallPage";
+import SettingsPage from "./pages/SettingsPage";
+import NewMessagePage from "./pages/NewMessagePage";
+import HomeworkEditPage from "./pages/HomeworkEditPage";
 import MainLayout from "./components/layout/MainLayout";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -166,14 +170,14 @@ const App: React.FC = () => {
             <Route path="grades/edit" element={<PlaceholderPage />} />
             <Route path="grades/appreciations" element={<PlaceholderPage />} />
             <Route path="homework" element={<HomeworkPage />} />
-            <Route path="homework/edit" element={<PlaceholderPage />} />
+            <Route path="homework/edit" element={<HomeworkEditPage />} />
             <Route path="homework/planning" element={<PlaceholderPage />} />
             <Route path="homework/exams" element={<PlaceholderPage />} />
             <Route path="homework/summary" element={<PlaceholderPage />} />
             <Route path="homework/content" element={<PlaceholderPage />} />
             <Route path="messaging" element={<MessagingPage />} />
             <Route path="attendance" element={<AttendancePage />} />
-            <Route path="attendance/call" element={<PlaceholderPage />} />
+            <Route path="attendance/call" element={<AttendanceCallPage />} />
             <Route path="attendance/sanctions" element={<PlaceholderPage />} />
             <Route path="informations" element={<InformationsPage />} />
             <Route path="services" element={<PlaceholderPage />} />
@@ -198,6 +202,8 @@ const App: React.FC = () => {
             <Route path="meetings" element={<PlaceholderPage />} />
             <Route path="rooms" element={<PlaceholderPage />} />
             <Route path="casier" element={<PlaceholderPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="messaging/new" element={<NewMessagePage />} />
           </Route>
           <Route
             path="*"

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, LogIn, QrCode, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, LogIn, QrCode, Loader2, BookmarkCheck, Wifi, WifiOff } from 'lucide-react';
 import { useAuthStore } from '../lib/store/authStore';
 import { createClient, setClient } from '../lib/pronote/client';
 import { generateUUID } from '../lib/pronote/crypto';
@@ -9,16 +9,20 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { setAuthenticated, setCredentials, setClientInfo, setLoading, setError, isLoading, error } = useAuthStore();
 
-  const [url, setUrl] = useState('https://demo.index-education.net/pronote/professeur.html');
-  const [username, setUsername] = useState('demonstration');
-  const [password, setPassword] = useState('pronotevs');
+  // Mémorisation des identifiants via localStorage
+  const [url, setUrl] = useState(() => localStorage.getItem('pronote_saved_url') || 'https://demo.index-education.net/pronote/professeur.html');
+  const [username, setUsername] = useState(() => localStorage.getItem('pronote_saved_username') || 'demonstration');
+  const [password, setPassword] = useState(() => localStorage.getItem('pronote_saved_password') || 'pronotevs');
+  const [rememberMe, setRememberMe] = useState(() => localStorage.getItem('pronote_remember') === 'true');
   const [showPassword, setShowPassword] = useState(false);
   const [showQrMode, setShowQrMode] = useState(false);
+  const [networkError, setNetworkError] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setNetworkError(false);
 
     try {
       const credentials = {
@@ -33,10 +37,21 @@ const LoginPage: React.FC = () => {
       const success = await client.login();
 
       if (success) {
+        // Mémoriser les identifiants si demandé
+        if (rememberMe) {
+          localStorage.setItem('pronote_saved_url', url);
+          localStorage.setItem('pronote_saved_username', username);
+          localStorage.setItem('pronote_saved_password', password);
+          localStorage.setItem('pronote_remember', 'true');
+        } else {
+          localStorage.removeItem('pronote_saved_url');
+          localStorage.removeItem('pronote_saved_username');
+          localStorage.removeItem('pronote_saved_password');
+          localStorage.setItem('pronote_remember', 'false');
+        }
         setCredentials(credentials);
         setClientInfo(client.clientInfo);
         setAuthenticated(true);
-        // Sauvegarder en localStorage pour persistance
         localStorage.setItem('pronote_credentials', JSON.stringify(credentials));
         navigate('/dashboard');
       } else {
@@ -45,7 +60,13 @@ const LoginPage: React.FC = () => {
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erreur de connexion inconnue';
-      setError(message);
+      // Détecter les erreurs réseau
+      if (message.includes('Network') || message.includes('ECONNREFUSED') || message.includes('fetch')) {
+        setNetworkError(true);
+        setError('Impossible de joindre le serveur Pronote. Vérifiez votre connexion internet et l\'URL saisie.');
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -61,7 +82,7 @@ const LoginPage: React.FC = () => {
           </div>
           <h1 className="text-2xl font-bold">PRONOTE</h1>
           <p className="text-blue-200 text-sm mt-1">Application de bureau — Linux / macOS</p>
-          <p className="text-blue-300 text-xs mt-1">v1.5.0</p>
+          <p className="text-blue-300 text-xs mt-1">v1.6.0</p>
         </div>
 
         {/* Formulaire */}
@@ -146,10 +167,37 @@ const LoginPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Se souvenir de moi */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRememberMe(!rememberMe)}
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                    rememberMe ? 'bg-blue-600 border-blue-600' : 'border-gray-300'
+                  }`}
+                >
+                  {rememberMe && <BookmarkCheck className="w-3 h-3 text-white" />}
+                </button>
+                <label
+                  onClick={() => setRememberMe(!rememberMe)}
+                  className="text-sm text-gray-600 cursor-pointer select-none"
+                >
+                  Se souvenir de mes identifiants
+                </label>
+              </div>
+
               {/* Erreur */}
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                  {error}
+                <div className={`border px-4 py-3 rounded-lg text-sm flex items-start gap-2 ${
+                  networkError
+                    ? 'bg-orange-50 border-orange-200 text-orange-700'
+                    : 'bg-red-50 border-red-200 text-red-700'
+                }`}>
+                  {networkError
+                    ? <WifiOff className="w-4 h-4 mt-0.5 shrink-0" />
+                    : <Wifi className="w-4 h-4 mt-0.5 shrink-0" />
+                  }
+                  <span>{error}</span>
                 </div>
               )}
 

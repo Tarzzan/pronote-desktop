@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.6.0] — 2026-02-24
+
+### Nouvelles fonctionnalités
+- **Page Appel de présence** (`/attendance/call`) : formulaire complet avec statuts présent/absent/retard/excusé, saisie des minutes de retard, actions rapides "Tout marquer" et statistiques en temps réel
+- **Page Paramètres** (`/settings`) : interface graphique pour configurer le port API, l'URL Pronote, le thème, les notifications et les mises à jour automatiques
+- **Page Nouveau message** (`/messaging/new`) : composition de messages avec recherche de destinataires, objet et corps du message
+- **Page Saisie des devoirs** (`/homework/edit`) : formulaire multi-devoirs avec classe, matière, type, date d'échéance et durée estimée
+- **Mémorisation des identifiants** sur la page de connexion avec case à cocher "Se souvenir de moi"
+- **Détection des erreurs réseau** avec message explicite et icône distincte (WifiOff) sur la page de connexion
+- Lien "Paramètres" et "Nouveau message" ajoutés dans la barre de navigation latérale
+
+### Corrections
+- Version hardcodée dans `client.ts` corrigée (v1.2.0 → v1.6.0)
+- Version affichée sur la page de connexion mise à jour (v1.5.0 → v1.6.0)
+
+---
+
 ## [1.5.0] — 2026-02-24
 
 ### Corrections de bugs
