@@ -11,6 +11,9 @@ import MessagingPage from "./pages/MessagingPage";
 import AttendancePage from "./pages/AttendancePage";
 import InformationsPage from "./pages/InformationsPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
+import BulletinsPage from "./pages/BulletinsPage";
+import CompetencesPage from "./pages/CompetencesPage";
+import QCMPage from "./pages/QCMPage";
 import MainLayout from "./components/layout/MainLayout";
 import ErrorBoundary from "./components/ErrorBoundary";
 
@@ -179,16 +182,16 @@ const App: React.FC = () => {
             <Route path="teachers" element={<PlaceholderPage />} />
             <Route path="resources/students" element={<PlaceholderPage />} />
             <Route path="resources/teachers" element={<PlaceholderPage />} />
-            <Route path="qcm" element={<PlaceholderPage />} />
+            <Route path="qcm" element={<QCMPage />} />
             <Route path="forums" element={<PlaceholderPage />} />
             <Route path="progressions" element={<PlaceholderPage />} />
             <Route path="programs" element={<PlaceholderPage />} />
-            <Route path="bulletins" element={<PlaceholderPage />} />
+            <Route path="bulletins" element={<BulletinsPage />} />
             <Route path="bulletins/appreciations" element={<PlaceholderPage />} />
             <Route path="bulletins/archive" element={<PlaceholderPage />} />
-            <Route path="competences/referentiels" element={<PlaceholderPage />} />
+            <Route path="competences/referentiels" element={<CompetencesPage />} />
             <Route path="competences/evaluations" element={<PlaceholderPage />} />
-            <Route path="competences/suivis" element={<PlaceholderPage />} />
+            <Route path="competences/suivis" element={<CompetencesPage />} />
             <Route path="competences/bilans" element={<PlaceholderPage />} />
             <Route path="results/livret" element={<PlaceholderPage />} />
             <Route path="results/summary" element={<PlaceholderPage />} />

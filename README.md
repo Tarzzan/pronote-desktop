@@ -10,13 +10,25 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.2.0-blue?style=flat-square"/>
+  <img src="https://img.shields.io/badge/version-1.3.0-blue?style=flat-square"/>
   <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey?style=flat-square"/>
   <img src="https://img.shields.io/badge/electron-34.x-47848F?style=flat-square&logo=electron"/>
   <img src="https://img.shields.io/badge/react-18.x-61DAFB?style=flat-square&logo=react"/>
   <img src="https://img.shields.io/badge/typescript-5.x-3178C6?style=flat-square&logo=typescript"/>
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square"/>
 </p>
+
+---
+
+## 📸 Aperçu
+
+| 🏠 Tableau de bord | 📅 Emploi du temps |
+|:---:|:---:|
+| ![Dashboard](assets/screenshots/01-dashboard-full.webp) | ![Timetable](assets/screenshots/02-timetable-full.webp) |
+
+| 📋 Bulletins scolaires | 🧠 QCM interactifs |
+|:---:|:---:|
+| ![Bulletins](assets/screenshots/03-bulletins-full.webp) | ![QCM](assets/screenshots/05-qcm-full.webp) |
 
 ---
 
@@ -55,7 +67,7 @@
 
 ```bash
 # Télécharger le paquet depuis les Releases
-wget https://github.com/Tarzzan/pronote-desktop/releases/download/v1.2.0/pronote-desktop_1.2.0_amd64.deb
+wget https://github.com/Tarzzan/pronote-desktop/releases/download/v1.3.0/pronote-desktop_1.2.0_amd64.deb
 
 # Installer le paquet
 sudo dpkg -i pronote-desktop_1.2.0_amd64.deb
@@ -197,13 +209,13 @@ Vous pouvez également [ouvrir une Issue manuellement](https://github.com/Tarzza
 Le fichier `.github/workflows/build.yml` déclenche automatiquement :
 
 - Sur chaque `push` sur `main` : vérification TypeScript + build du `.deb`
-- Sur chaque tag `v*` (ex: `git tag v1.2.0`) : création d'une Release GitHub avec le `.deb` en pièce jointe
+- Sur chaque tag `v*` (ex: `git tag v1.3.0`) : création d'une Release GitHub avec le `.deb` en pièce jointe
 
 ---
 
 ## Changelog
 
-### v1.2.0 — 2026-02-24
+### v1.3.0 — 2026-02-24
 
 - **Correction critique** : suppression du reset CSS `* { padding: 0 }` qui écrasait toutes les classes Tailwind en production
 - **API réelle** : intégration du backend Python Flask pour les appels API Pronote via pronotepy (remplacement des données statiques)

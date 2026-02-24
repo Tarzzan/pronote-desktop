@@ -7,6 +7,31 @@ et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.3.0] — 2026-02-24
+
+### ✨ Nouveautés
+
+- **Page Bulletins scolaires** : affichage des résultats par période avec appréciations, graphique de profil (RadarChart) et sélecteur de trimestre/semestre
+- **Page Compétences** : grille d'évaluation par référentiel avec niveaux colorés (Maîtrise insuffisante → Très bonne maîtrise)
+- **Page QCM interactifs** : exercices à choix multiples avec progression, score final et correction instantanée
+- **Graphiques dashboard** : PieChart (répartition des cours de la semaine) et BarChart (devoirs par matière) via `recharts`
+- **Animations de page** : transitions fade-in/fade-out avec `framer-motion`
+- **Sidebar améliorée** : icônes SVG colorées par catégorie, badges de notification animés, effets de survol
+
+### 📸 Documentation
+
+- Screenshots de toutes les pages intégrés dans le README
+- Wiki GitHub créé avec 3 pages : Guide d'installation, Guide utilisateur, Guide développeur
+- CHANGELOG mis à jour
+
+### 🔧 Technique
+
+- Ajout de `recharts` et `framer-motion` comme dépendances de production
+- Nouvelles routes : `/bulletins`, `/competences/referentiels`, `/qcm`
+- Versioning automatique incrémenté à 1.3.0
+
+---
+
 ## [1.2.0] — 2026-02-24
 
 ### Corrigé
