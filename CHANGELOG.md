@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.6.1] — 2026-02-24
+
+### Correctifs critiques (rapport testeur Ubuntu 24.04)
+- **Wheels CP312** : remplacement des wheels CP311 par des wheels compatibles Python 3.12 (Ubuntu 24.04) — corrige `ModuleNotFoundError: No module named 'pronotepy'` et l'erreur `No matching distribution found for charset-normalizer`
+- **Frontend 404 corrigé** : Flask sert maintenant `index.html` et `/assets/*` directement — plus de 404 sur `http://localhost:5174`. Ajout des routes `/`, `/<path:path>` (fallback SPA) et import de `send_from_directory`
+- **Launcher navigateur** : priorité à `google-chrome --app=` et `chromium-browser --app=` pour une expérience fenêtre native sans barre de navigation, fallback `xdg-open` si absent
+- **postinst** : utilisation de `python3 -m venv --system-site-packages` pour garantir la compatibilité Python 3.10/3.11/3.12 — les paquets système sont utilisés en fallback si les wheels embarqués ne correspondent pas à l'ABI
+- Mise à jour de la version dans `pronote_api.py` et `postinst.sh` (1.5.0 → 1.6.1)
+
+---
+
 ## [1.6.0] — 2026-02-24
 
 ### Nouvelles fonctionnalités

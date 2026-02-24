@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Pronote Desktop — Serveur API Python (proxy pronotepy)
-Version: 1.5.0
+Version: 1.6.1
 Ce serveur Flask fait le pont entre l'interface React et l'API Pronote
 via la bibliothèque pronotepy.
 """
@@ -12,7 +12,7 @@ import json
 import os
 import subprocess
 import traceback
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 # --- Configuration ---
@@ -32,7 +32,8 @@ def load_config():
 
 CONFIG = load_config()
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Flask(__name__, static_folder=os.path.join(BASE_DIR, 'assets'), static_url_path='/assets')
 CORS(app, origins=["*"])
 
 # Session Pronote en mémoire
@@ -149,9 +150,21 @@ def info_to_dict(i) -> dict:
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
 
+@app.route('/')
+def index():
+    """Sert le frontend React (SPA)."""
+    return send_from_directory(BASE_DIR, 'index.html')
+
+@app.route('/<path:path>')
+def spa_fallback(path):
+    """Fallback SPA : toutes les routes non-API renvoient index.html."""
+    if path.startswith('api/'):
+        return jsonify({"error": "Not found"}), 404
+    return send_from_directory(BASE_DIR, 'index.html')
+
 @app.route('/api/health', methods=['GET'])
 def health():
-    return jsonify({"status": "ok", "version": "1.5.0"})
+    return jsonify({"status": "ok", "version": "1.6.1"})
 
 @app.route('/api/login', methods=['POST'])
 def login():
