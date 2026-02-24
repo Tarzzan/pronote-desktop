@@ -7,6 +7,24 @@ et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
+## [1.4.0] — 2026-02-24
+
+### ✨ Nouveautés
+
+- **Icône personnalisée** : icône multi-résolution (16×16 à 512×512 + SVG scalable) installée dans `/usr/share/icons/hicolor/` — visible dans le menu Applications, le dock et les gestionnaires de fichiers
+- **Service systemd** : le backend Flask démarre automatiquement avec le système via `pronote-desktop-api.service`, éliminant le délai de 2 secondes au lancement
+- **Vérificateur de mises à jour** : notification non bloquante via `notify-send` si une nouvelle version est disponible sur GitHub
+- **Métadonnées AppStream** : fichier `fr.pronote.desktop.metainfo.xml` conforme au standard Freedesktop — description riche, captures d'écran et historique des versions pour les centres d'applications (GNOME Software, KDE Discover)
+- **Configuration persistante** : `/etc/pronote-desktop/config.json` préservé lors des mises à jour grâce au mécanisme `conffiles`
+
+### 🔧 Technique
+
+- Script `preinst` : sauvegarde de l'ancien venv lors d'un `upgrade` pour rollback possible
+- Script `postrm` : arrêt et suppression propre du service systemd et du venv
+- Installation offline conservée : 19 wheels Python embarqués, aucun appel réseau
+
+---
+
 ## [1.3.1] — 2026-02-24
 
 ### 🐛 Corrections
