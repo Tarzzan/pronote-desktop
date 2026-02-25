@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   Settings, Save, RefreshCw, Loader2, CheckCircle,
-  Server, Bell, Palette, Info, ExternalLink
+  Server, Bell, Palette, Info, ExternalLink, ArrowUpCircle, Download, ShieldCheck, AlertTriangle
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -24,6 +24,20 @@ const DEFAULT_CONFIG: AppConfig = {
   language: 'fr',
 };
 
+const formatReleaseDate = (isoDate: string): string => {
+  if (!isoDate) return 'Inconnue';
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return 'Inconnue';
+  return date.toLocaleString('fr-FR');
+};
+
+const formatBytes = (value: number): string => {
+  if (!value || value <= 0) return '0 B';
+  if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+  if (value >= 1024) return `${Math.round(value / 1024)} KB`;
+  return `${value} B`;
+};
+
 // ─── Composant principal ──────────────────────────────────────────────────────
 const SettingsPage: React.FC = () => {
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
@@ -32,6 +46,15 @@ const SettingsPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [updateInfo, setUpdateInfo] = useState<DesktopUpdateInfo | null>(null);
+  const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
+  const [isInstallingUpdate, setIsInstallingUpdate] = useState(false);
+  const [updateProgress, setUpdateProgress] = useState<DesktopUpdateProgressEvent | null>(null);
+  const [updateStatus, setUpdateStatus] = useState<string | null>(null);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const [manualInstallCommand, setManualInstallCommand] = useState<string | null>(null);
+  const [restartAvailable, setRestartAvailable] = useState(false);
+  const autoCheckDoneRef = useRef(false);
 
   const API_BASE = 'http://127.0.0.1:5174/api';
 
@@ -56,6 +79,97 @@ const SettingsPage: React.FC = () => {
     };
     loadConfig();
   }, []);
+
+  useEffect(() => {
+    const updatesApi = window.pronoteDesktopUpdates;
+    if (!updatesApi) return undefined;
+    return updatesApi.onProgress((event) => {
+      setUpdateProgress(event);
+      if (event.stage === 'error') {
+        setUpdateError(event.message);
+      } else {
+        setUpdateStatus(event.message);
+      }
+    });
+  }, []);
+
+  const handleCheckUpdates = async (silent = false) => {
+    const updatesApi = window.pronoteDesktopUpdates;
+    if (!updatesApi) {
+      if (!silent) {
+        setUpdateError('Fonction de mise à jour disponible uniquement dans l’application desktop packagée.');
+      }
+      return;
+    }
+
+    setIsCheckingUpdates(true);
+    setUpdateError(null);
+    setManualInstallCommand(null);
+    if (!silent) {
+      setUpdateStatus(null);
+    }
+
+    try {
+      const response = await updatesApi.checkForUpdates();
+      if (!response.ok || !response.info) {
+        throw new Error(response.error || 'Vérification impossible pour le moment.');
+      }
+      setUpdateInfo(response.info);
+      if (!response.info.hasUpdate) {
+        setUpdateStatus('Vous utilisez déjà la dernière version.');
+      } else {
+        setUpdateStatus(`Nouvelle version détectée: v${response.info.latestVersion}`);
+      }
+    } catch (e) {
+      if (!silent) {
+        setUpdateError(e instanceof Error ? e.message : 'Erreur lors de la vérification des mises à jour.');
+      }
+    } finally {
+      setIsCheckingUpdates(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoading || autoCheckDoneRef.current || !config.check_updates) return;
+    autoCheckDoneRef.current = true;
+    void handleCheckUpdates(true);
+  }, [isLoading, config.check_updates]);
+
+  const handleInstallUpdate = async () => {
+    const updatesApi = window.pronoteDesktopUpdates;
+    if (!updatesApi) {
+      setUpdateError('Fonction de mise à jour disponible uniquement dans l’application desktop packagée.');
+      return;
+    }
+
+    setIsInstallingUpdate(true);
+    setUpdateError(null);
+    setManualInstallCommand(null);
+    setRestartAvailable(false);
+
+    try {
+      const response = await updatesApi.installUpdate();
+      if (!response.ok) {
+        setUpdateError(response.error || 'Échec de la mise à jour.');
+        if (response.manualCommand) {
+          setManualInstallCommand(response.manualCommand);
+        }
+        return;
+      }
+      setRestartAvailable(Boolean(response.restartRequired));
+      setUpdateStatus(`Mise à jour installée${response.installedVersion ? ` vers v${response.installedVersion}` : ''}.`);
+    } catch (e) {
+      setUpdateError(e instanceof Error ? e.message : 'Échec de la mise à jour.');
+    } finally {
+      setIsInstallingUpdate(false);
+    }
+  };
+
+  const handleRestartApp = async () => {
+    const updatesApi = window.pronoteDesktopUpdates;
+    if (!updatesApi) return;
+    await updatesApi.restartApp();
+  };
 
   const hasChanges = JSON.stringify(config) !== JSON.stringify(original);
 
@@ -185,12 +299,145 @@ const SettingsPage: React.FC = () => {
           </div>
         </Section>
 
+        {/* Section Mises à jour */}
+        <Section icon={<ArrowUpCircle className="w-5 h-5 text-emerald-600" />} title="Mises à jour">
+          <div className="space-y-4">
+            {window.pronoteDesktopUpdates ? (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-lg border border-gray-200 px-3 py-2">
+                    <div className="text-gray-500">Version actuelle</div>
+                    <div className="font-semibold text-gray-900">v{__APP_VERSION__}</div>
+                  </div>
+                  <div className="rounded-lg border border-gray-200 px-3 py-2">
+                    <div className="text-gray-500">Dernière version GitHub</div>
+                    <div className="font-semibold text-gray-900">
+                      {updateInfo ? `v${updateInfo.latestVersion}` : 'Non vérifiée'}
+                    </div>
+                  </div>
+                </div>
+
+                {updateInfo && (
+                  <div className="rounded-lg border border-gray-200 px-3 py-3 text-sm text-gray-700 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500">Publication</span>
+                      <span>{formatReleaseDate(updateInfo.publishedAt)}</span>
+                    </div>
+                    {updateInfo.asset && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500">Paquet</span>
+                        <span>{updateInfo.asset.name} ({formatBytes(updateInfo.asset.size)})</span>
+                      </div>
+                    )}
+                    {updateInfo.releaseUrl && (
+                      <div className="pt-1">
+                        <a
+                          href={updateInfo.releaseUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-blue-600 hover:underline font-medium"
+                        >
+                          Voir la release GitHub <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {updateInfo?.notes && (
+                  <details className="rounded-lg border border-gray-200 p-3 text-xs text-gray-600">
+                    <summary className="cursor-pointer font-medium text-gray-700">Notes de version</summary>
+                    <pre className="mt-2 whitespace-pre-wrap font-sans leading-relaxed text-gray-600">
+                      {updateInfo.notes.split('\n').slice(0, 12).join('\n')}
+                    </pre>
+                  </details>
+                )}
+
+                {updateProgress?.stage === 'download' && typeof updateProgress.percent === 'number' && (
+                  <div className="space-y-1">
+                    <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                      <div
+                        className="h-full bg-blue-600 transition-all"
+                        style={{ width: `${Math.max(0, Math.min(100, updateProgress.percent))}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {updateProgress.message}
+                    </div>
+                  </div>
+                )}
+
+                {updateStatus && (
+                  <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 flex items-start gap-2">
+                    <ShieldCheck className="w-4 h-4 mt-0.5" />
+                    <span>{updateStatus}</span>
+                  </div>
+                )}
+
+                {updateError && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 mt-0.5" />
+                    <span>{updateError}</span>
+                  </div>
+                )}
+
+                {manualInstallCommand && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+                    <div className="text-xs text-amber-800 font-medium mb-1">Commande manuelle</div>
+                    <code className="text-xs text-amber-900 break-all">{manualInstallCommand}</code>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => handleCheckUpdates(false)}
+                    disabled={isCheckingUpdates || isInstallingUpdate}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {isCheckingUpdates ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                    Vérifier les mises à jour
+                  </button>
+
+                  {updateInfo?.hasUpdate && !updateInfo.unsupportedReason && (
+                    <button
+                      onClick={handleInstallUpdate}
+                      disabled={isInstallingUpdate || isCheckingUpdates}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-700 text-white text-sm font-semibold hover:bg-blue-800 disabled:opacity-50"
+                    >
+                      {isInstallingUpdate ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                      Mettre à jour maintenant
+                    </button>
+                  )}
+
+                  {restartAvailable && (
+                    <button
+                      onClick={handleRestartApp}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      Redémarrer l'application
+                    </button>
+                  )}
+                </div>
+
+                {updateInfo?.unsupportedReason && (
+                  <p className="text-xs text-amber-700">{updateInfo.unsupportedReason}</p>
+                )}
+              </>
+            ) : (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                Fonction de mise à jour disponible uniquement dans l’application desktop packagée.
+              </div>
+            )}
+          </div>
+        </Section>
+
         {/* Section À propos */}
         <Section icon={<Info className="w-5 h-5 text-gray-500" />} title="À propos">
           <div className="space-y-2 text-sm text-gray-600">
             <div className="flex justify-between">
               <span className="text-gray-500">Version</span>
-              <span className="font-medium">1.6.0</span>
+              <span className="font-medium">{__APP_VERSION__}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Licence</span>
