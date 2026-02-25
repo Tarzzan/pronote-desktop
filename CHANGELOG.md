@@ -5,6 +5,12 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.7.2] — 2026-02-25
+
+### Corrigé
+- **Release GitHub sur tag** : correction du workflow CI pour empêcher `electron-builder` de publier pendant l'étape de build (`--publish never`), ce qui bloquait le job `Build Linux (.deb)` sur les tags et empêchait la création de release.
+- **Continuité de reprise** : publication corrective suite à la reprise en cours de route afin de fiabiliser la chaîne de release automatisée.
+
 ## [1.7.1] — 2026-02-25
 
 ### Corrigé

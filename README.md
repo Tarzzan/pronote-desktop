@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.7.1-blue?style=flat-square"/>
+  <img src="https://img.shields.io/badge/version-1.7.2-blue?style=flat-square"/>
   <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey?style=flat-square"/>
   <img src="https://img.shields.io/badge/electron-40.x-47848F?style=flat-square&logo=electron"/>
   <img src="https://img.shields.io/badge/react-19.x-61DAFB?style=flat-square&logo=react"/>
@@ -44,7 +44,7 @@
 
 ### État du projet
 
-- Reprise en cours de route et stabilisation active depuis la version `1.7.1`.
+- Reprise en cours de route et stabilisation active depuis la version `1.7.2`.
 - Incident rencontré pendant la reprise: erreur de build locale `Cannot find native binding` (Tailwind Oxide optionnel manquant), documentée dans le changelog et adressée dans la configuration du projet.
 
 ---
