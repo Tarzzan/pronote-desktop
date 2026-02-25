@@ -12,7 +12,7 @@ import json
 import os
 import subprocess
 import traceback
-from typing import Any, Optional
+from typing import Any, List, Optional, Tuple
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
@@ -124,16 +124,77 @@ class PronotepySyncAdapter(PronoteBackendAdapter):
         return list(client.information_and_surveys())
 
 
+class PronotepyRefonteAdapter(PronotepySyncAdapter):
+    """Spike adapter pour préparer une refonte pronotepy sans casser l'existant.
+
+    La connexion tente d'abord `TeacherClient` (si disponible), puis bascule
+    automatiquement sur `Client` pour rester compatible avec les versions
+    historiques de la librairie.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        raw_preference = os.environ.get("PRONOTE_REFRONTE_PREFER_TEACHER_CLIENT", "1").strip().lower()
+        self._prefer_teacher_client = raw_preference not in ("0", "false", "no", "off")
+        self._client_kind = "none"
+
+    def _build_client_candidates(self) -> List[Tuple[str, Any]]:
+        teacher_cls = getattr(pronotepy, "TeacherClient", None)
+        ordered_candidates: List[Tuple[str, Any]] = []
+
+        if self._prefer_teacher_client and teacher_cls is not None:
+            ordered_candidates.append(("pronotepy.TeacherClient", teacher_cls))
+        ordered_candidates.append(("pronotepy.Client", pronotepy.Client))
+        if (not self._prefer_teacher_client) and teacher_cls is not None:
+            ordered_candidates.append(("pronotepy.TeacherClient", teacher_cls))
+
+        # Évite un doublon si TeacherClient pointe déjà vers Client.
+        deduplicated: List[Tuple[str, Any]] = []
+        seen = set()
+        for name, cls in ordered_candidates:
+            marker = id(cls)
+            if marker in seen:
+                continue
+            seen.add(marker)
+            deduplicated.append((name, cls))
+        return deduplicated
+
+    def login(self, pronote_url: str, username: str, password: str) -> bool:
+        last_error: Optional[Exception] = None
+        self._client = None
+        self._client_kind = "none"
+
+        for candidate_name, candidate_cls in self._build_client_candidates():
+            self._client_kind = candidate_name
+            try:
+                candidate_client = candidate_cls(pronote_url, username=username, password=password)
+            except Exception as exc:
+                last_error = exc
+                continue
+
+            if bool(getattr(candidate_client, "logged_in", False)):
+                self._client = candidate_client
+                self._client_kind = candidate_name
+                return True
+
+        if last_error is not None:
+            raise AdapterError(f"Échec de connexion backend ({self._client_kind}): {last_error}")
+        return False
+
+
 def build_backend_adapter() -> PronoteBackendAdapter:
     """Factory de backend.
 
     Le nom est piloté par PRONOTE_BACKEND_ADAPTER pour faciliter les spikes.
     Valeurs supportées:
     - pronotepy-sync (défaut)
+    - pronotepy-refonte
     """
     adapter_name = os.environ.get("PRONOTE_BACKEND_ADAPTER", "pronotepy-sync").strip().lower()
     if adapter_name in ("", "pronotepy-sync"):
         return PronotepySyncAdapter()
+    if adapter_name in ("pronotepy-refonte", "refonte-pronotepy"):
+        return PronotepyRefonteAdapter()
     raise RuntimeError(f"Backend adapter non supporté: {adapter_name}")
 
 
