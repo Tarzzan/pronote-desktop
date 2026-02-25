@@ -294,19 +294,24 @@ def discussion_to_dict(d) -> dict:
         for m in d.messages:
             messages.append({
                 "id": str(m.id) if hasattr(m, 'id') else str(id(m)),
-                "author": str(m.author) if m.author else "Inconnu",
-                "content": str(m.content) if m.content else "",
+                "author": str(getattr(m, 'author', None)) if getattr(m, 'author', None) else "Inconnu",
+                "content": str(getattr(m, 'content', None)) if getattr(m, 'content', None) else "",
                 "date": m.date.isoformat() if hasattr(m, 'date') and m.date else "",
                 "seen": bool(m.seen) if hasattr(m, 'seen') else False,
             })
     except Exception:
         pass
+
+    subject = getattr(d, 'subject', None)
+    creator = getattr(d, 'creator', None)
+    date_value = getattr(d, 'date', None)
+
     return {
         "id": str(d.id) if hasattr(d, 'id') else str(id(d)),
-        "subject": str(d.subject) if d.subject else "Sans objet",
-        "creator": str(d.creator) if d.creator else "Inconnu",
+        "subject": str(subject) if subject else "Sans objet",
+        "creator": str(creator) if creator else "Inconnu",
         "unread": bool(d.unread) if hasattr(d, 'unread') else False,
-        "date": d.date.isoformat() if hasattr(d, 'date') and d.date else "",
+        "date": date_value.isoformat() if date_value else "",
         "messages": messages,
         "participants": [],
     }
