@@ -7,10 +7,10 @@ if [[ -z "${DEB_PATH}" || ! -f "${DEB_PATH}" ]]; then
   exit 1
 fi
 
-echo "[1/8] Install package"
+echo "[1/10] Install package"
 sudo -n dpkg -i "${DEB_PATH}"
 
-echo "[2/8] Stop previous local processes"
+echo "[2/10] Stop previous local processes"
 pkill -f "/opt/Pronote Desktop/pronote-desktop" || true
 pkill -f "/opt/pronote-desktop/pronote-desktop" || true
 pkill -f "/usr/lib/pronote-desktop/pronote-desktop-bin" || true
@@ -49,10 +49,10 @@ launch_and_check() {
   fi
 }
 
-echo "[3/8] Launch app (run 1) and keep alive 40s"
+echo "[3/10] Launch app (run 1) and keep alive 40s"
 launch_and_check "run1" 40
 
-echo "[4/8] Validate backend health"
+echo "[4/10] Validate backend health"
 python3 - << 'PY'
 import json, urllib.request, sys
 url = "http://127.0.0.1:5174/api/health"
@@ -66,7 +66,7 @@ except Exception as e:
     raise
 PY
 
-echo "[5/8] Validate demo login"
+echo "[5/10] Validate demo login"
 python3 - << 'PY'
 import json, urllib.request
 payload = {
@@ -85,11 +85,31 @@ assert data.get("success") is True, data
 print("demo_login=ok")
 PY
 
-echo "[6/8] Restart run 2 and keep alive 10s"
+echo "[6/10] Validate menus endpoint after login"
+python3 - << 'PY'
+import json, urllib.request
+url = "http://127.0.0.1:5174/api/menus?from=2026-02-23&to=2026-03-01"
+with urllib.request.urlopen(url, timeout=20) as r:
+    data = json.loads(r.read().decode("utf-8"))
+assert isinstance(data, list), type(data)
+print(f"menus_ok={len(data)}")
+PY
+
+echo "[7/10] Validate homework endpoint after login"
+python3 - << 'PY'
+import json, urllib.request
+url = "http://127.0.0.1:5174/api/homework?from=2026-02-23&to=2026-03-15"
+with urllib.request.urlopen(url, timeout=20) as r:
+    data = json.loads(r.read().decode("utf-8"))
+assert isinstance(data, list), type(data)
+print(f"homework_ok={len(data)}")
+PY
+
+echo "[8/10] Restart run 2 and keep alive 10s"
 launch_and_check "run2" 10
 
-echo "[7/8] Restart run 3 and keep alive 10s"
+echo "[9/10] Restart run 3 and keep alive 10s"
 launch_and_check "run3" 10
 
-echo "[8/8] Smoke test passed"
+echo "[10/10] Smoke test passed"
 echo "UI logs: /tmp/pronote-smoke-ui-run*.log"
