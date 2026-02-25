@@ -15,6 +15,7 @@ et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 - **Post-install trompeur** : messages de version `v1.7.0` corrigés vers `v1.7.4` dans le script d’installation Debian.
 - **Assets non trouvés en mode packagé** : `vite.config.ts` passe en `base: './'` pour éviter les chemins absolus `/assets/...` qui provoquaient un écran vide avec `file://`.
 - **Preload Electron invalide** : suppression de l’accès à `app.getVersion()` dans `preload.cjs` (non disponible dans ce contexte), ce qui supprimait l’erreur de chargement du preload au démarrage.
+- **Connexion impossible (API locale absente)** : inclusion de `pronote_api.py` dans la release et démarrage automatique du backend local via le wrapper `/usr/bin/pronote-desktop` (health-check `127.0.0.1:5174`) avant lancement de l’UI.
 
 ## [1.7.3] — 2026-02-25
 

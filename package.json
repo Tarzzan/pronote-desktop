@@ -41,6 +41,12 @@
       "electron/**/*",
       "package.json"
     ],
+    "extraResources": [
+      {
+        "from": "pronote_api.py",
+        "to": "pronote_api.py"
+      }
+    ],
     "linux": {
       "target": [
         {

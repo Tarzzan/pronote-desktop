@@ -146,6 +146,29 @@ echo "  Service pronote-desktop-api activé et démarré."
 if [ -x "/opt/Pronote Desktop/pronote-desktop" ]; then
     cat > /usr/bin/pronote-desktop << 'LAUNCHER'
 #!/bin/bash
+set -e
+
+API_PORT=5174
+if [ -f "/etc/pronote-desktop/config.json" ]; then
+  _PORT=$(python3 -c "import json; d=json.load(open('/etc/pronote-desktop/config.json')); print(d.get('api_port', 5174))" 2>/dev/null || true)
+  [ -n "$_PORT" ] && API_PORT="$_PORT"
+fi
+
+PY_BIN="/usr/lib/pronote-desktop/python-env/bin/python3"
+BACKEND_SCRIPT="/opt/Pronote Desktop/resources/pronote_api.py"
+
+if ! curl -s --max-time 1 "http://127.0.0.1:${API_PORT}/api/health" >/dev/null 2>&1; then
+  if [ -x "$PY_BIN" ] && [ -f "$BACKEND_SCRIPT" ]; then
+    nohup "$PY_BIN" "$BACKEND_SCRIPT" >/tmp/pronote-backend.log 2>&1 &
+    for i in $(seq 1 20); do
+      if curl -s --max-time 1 "http://127.0.0.1:${API_PORT}/api/health" >/dev/null 2>&1; then
+        break
+      fi
+      sleep 0.2
+    done
+  fi
+fi
+
 exec "/opt/Pronote Desktop/pronote-desktop" --no-sandbox --disable-gpu --ozone-platform=x11 "$@"
 LAUNCHER
     chmod 755 /usr/bin/pronote-desktop
