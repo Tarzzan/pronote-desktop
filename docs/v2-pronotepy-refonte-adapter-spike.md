@@ -10,15 +10,15 @@ Brancher une seconde implémentation backend sous le contrat `PronoteBackendAdap
   1. `pronotepy.TeacherClient` (si disponible),
   2. puis fallback sur `pronotepy.Client`.
 - Sélection via variable d'environnement `PRONOTE_BACKEND_ADAPTER`:
-  - `pronotepy-sync` (défaut)
-  - `pronotepy-refonte`
+  - `pronotepy-refonte` (défaut)
+  - `pronotepy-sync`
 - Option de priorité:
   - `PRONOTE_REFRONTE_PREFER_TEACHER_CLIENT=1` (défaut)
   - `PRONOTE_REFRONTE_PREFER_TEACHER_CLIENT=0` pour prioriser `Client`.
 
 ## Pourquoi ce design
 
-- Préserve le comportement actuel par défaut (`pronotepy-sync`).
+- Basculé par défaut vers `pronotepy-refonte`, avec override explicite possible vers `pronotepy-sync`.
 - Permet de tester une variante V2 sans modifier les routes API.
 - Réduit le risque en gardant un fallback explicite quand `TeacherClient` n'est pas présent.
 

@@ -62,7 +62,7 @@ def _build_fake_flask_cors_module() -> types.ModuleType:
     return module
 
 
-def _import_pronote_api(adapter_name: str = "pronotepy-sync"):
+def _import_pronote_api(adapter_name: str = "pronotepy-refonte"):
     fake_pronotepy = _build_fake_pronotepy_module()
     fake_flask_cors = _build_fake_flask_cors_module()
     with mock.patch.dict(sys.modules, {"pronotepy": fake_pronotepy, "flask_cors": fake_flask_cors}):
@@ -207,15 +207,21 @@ class DummyAdapter:
 
 
 class BackendFactoryContractTests(unittest.TestCase):
-    def test_build_backend_adapter_defaults_to_sync(self):
+    def test_build_backend_adapter_defaults_to_refonte(self):
         api = _import_pronote_api("pronotepy-sync")
         with mock.patch.dict(os.environ, {}, clear=True):
             adapter = api.build_backend_adapter()
+        self.assertIsInstance(adapter, api.PronotepyRefonteAdapter)
+
+    def test_build_backend_adapter_supports_sync_override(self):
+        api = _import_pronote_api("pronotepy-sync")
+        with mock.patch.dict(os.environ, {"PRONOTE_BACKEND_ADAPTER": "pronotepy-sync"}, clear=False):
+            adapter = api.build_backend_adapter()
         self.assertIsInstance(adapter, api.PronotepySyncAdapter)
 
-    def test_build_backend_adapter_supports_refonte(self):
+    def test_build_backend_adapter_supports_refonte_alias(self):
         api = _import_pronote_api("pronotepy-sync")
-        with mock.patch.dict(os.environ, {"PRONOTE_BACKEND_ADAPTER": "pronotepy-refonte"}, clear=False):
+        with mock.patch.dict(os.environ, {"PRONOTE_BACKEND_ADAPTER": "refonte-pronotepy"}, clear=False):
             adapter = api.build_backend_adapter()
         self.assertIsInstance(adapter, api.PronotepyRefonteAdapter)
 

@@ -305,10 +305,10 @@ def build_backend_adapter() -> PronoteBackendAdapter:
 
     Le nom est piloté par PRONOTE_BACKEND_ADAPTER pour faciliter les spikes.
     Valeurs supportées:
-    - pronotepy-sync (défaut)
-    - pronotepy-refonte
+    - pronotepy-refonte (défaut)
+    - pronotepy-sync
     """
-    adapter_name = os.environ.get("PRONOTE_BACKEND_ADAPTER", "pronotepy-sync").strip().lower()
+    adapter_name = os.environ.get("PRONOTE_BACKEND_ADAPTER", "pronotepy-refonte").strip().lower()
     if adapter_name in ("", "pronotepy-sync"):
         return PronotepySyncAdapter()
     if adapter_name in ("pronotepy-refonte", "refonte-pronotepy"):

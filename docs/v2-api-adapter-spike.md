@@ -39,7 +39,7 @@ Introduire une couche d'adaptation backend entre Flask (`pronote_api.py`) et le 
 
 ## Limites du spike
 
-- Implémentation alternative non branchée (seulement `pronotepy-sync` pour le moment).
+- Le mode par défaut est désormais `pronotepy-refonte`; la stratégie de rollback explicite reste `PRONOTE_BACKEND_ADAPTER=pronotepy-sync`.
 - Pas encore de tests unitaires Python dédiés à l'interface adapter.
 - Pas de packaging spécifique V2 dans ce spike.
 
