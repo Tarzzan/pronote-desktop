@@ -1,25 +1,26 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { Suspense, lazy, useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./lib/store/authStore";
 import { createClient, setClient } from "./lib/pronote/client";
 import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import TimetablePage from "./pages/TimetablePage";
-import GradesPage from "./pages/GradesPage";
-import HomeworkPage from "./pages/HomeworkPage";
-import MessagingPage from "./pages/MessagingPage";
-import AttendancePage from "./pages/AttendancePage";
-import InformationsPage from "./pages/InformationsPage";
-import PlaceholderPage from "./pages/PlaceholderPage";
-import BulletinsPage from "./pages/BulletinsPage";
-import CompetencesPage from "./pages/CompetencesPage";
-import QCMPage from "./pages/QCMPage";
-import AttendanceCallPage from "./pages/AttendanceCallPage";
-import SettingsPage from "./pages/SettingsPage";
-import NewMessagePage from "./pages/NewMessagePage";
-import HomeworkEditPage from "./pages/HomeworkEditPage";
 import MainLayout from "./components/layout/MainLayout";
 import ErrorBoundary from "./components/ErrorBoundary";
+
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const TimetablePage = lazy(() => import("./pages/TimetablePage"));
+const GradesPage = lazy(() => import("./pages/GradesPage"));
+const HomeworkPage = lazy(() => import("./pages/HomeworkPage"));
+const MessagingPage = lazy(() => import("./pages/MessagingPage"));
+const AttendancePage = lazy(() => import("./pages/AttendancePage"));
+const InformationsPage = lazy(() => import("./pages/InformationsPage"));
+const PlaceholderPage = lazy(() => import("./pages/PlaceholderPage"));
+const BulletinsPage = lazy(() => import("./pages/BulletinsPage"));
+const CompetencesPage = lazy(() => import("./pages/CompetencesPage"));
+const QCMPage = lazy(() => import("./pages/QCMPage"));
+const AttendanceCallPage = lazy(() => import("./pages/AttendanceCallPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const NewMessagePage = lazy(() => import("./pages/NewMessagePage"));
+const HomeworkEditPage = lazy(() => import("./pages/HomeworkEditPage"));
 
 // ─── Écran de chargement ──────────────────────────────────────────────────────
 const LoadingScreen: React.FC<{ message?: string }> = ({ message = "Connexion en cours..." }) => (
@@ -69,6 +70,12 @@ const StartupErrorScreen: React.FC<{ error: string; onRetry: () => void }> = ({ 
         </button>
       </div>
     </div>
+  </div>
+);
+
+const RouteLoadingFallback: React.FC = () => (
+  <div className="min-h-[40vh] flex items-center justify-center">
+    <div className="w-10 h-10 border-4 border-blue-700 border-t-transparent rounded-full animate-spin" />
   </div>
 );
 
@@ -153,63 +160,65 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <Routes>
-          <Route
-            path="/login"
-            element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}
-          />
-          <Route
-            path="/"
-            element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" replace />}
-          >
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="timetable" element={<TimetablePage />} />
-            <Route path="timetable/multi" element={<PlaceholderPage />} />
-            <Route path="grades" element={<GradesPage />} />
-            <Route path="grades/edit" element={<PlaceholderPage />} />
-            <Route path="grades/appreciations" element={<PlaceholderPage />} />
-            <Route path="homework" element={<HomeworkPage />} />
-            <Route path="homework/edit" element={<HomeworkEditPage />} />
-            <Route path="homework/planning" element={<PlaceholderPage />} />
-            <Route path="homework/exams" element={<PlaceholderPage />} />
-            <Route path="homework/summary" element={<PlaceholderPage />} />
-            <Route path="homework/content" element={<PlaceholderPage />} />
-            <Route path="messaging" element={<MessagingPage />} />
-            <Route path="attendance" element={<AttendancePage />} />
-            <Route path="attendance/call" element={<AttendanceCallPage />} />
-            <Route path="attendance/sanctions" element={<PlaceholderPage />} />
-            <Route path="informations" element={<InformationsPage />} />
-            <Route path="services" element={<PlaceholderPage />} />
-            <Route path="students" element={<PlaceholderPage />} />
-            <Route path="trombinoscope" element={<PlaceholderPage />} />
-            <Route path="teachers" element={<PlaceholderPage />} />
-            <Route path="resources/students" element={<PlaceholderPage />} />
-            <Route path="resources/teachers" element={<PlaceholderPage />} />
-            <Route path="qcm" element={<QCMPage />} />
-            <Route path="forums" element={<PlaceholderPage />} />
-            <Route path="progressions" element={<PlaceholderPage />} />
-            <Route path="programs" element={<PlaceholderPage />} />
-            <Route path="bulletins" element={<BulletinsPage />} />
-            <Route path="bulletins/appreciations" element={<PlaceholderPage />} />
-            <Route path="bulletins/archive" element={<PlaceholderPage />} />
-            <Route path="competences/referentiels" element={<CompetencesPage />} />
-            <Route path="competences/evaluations" element={<PlaceholderPage />} />
-            <Route path="competences/suivis" element={<CompetencesPage />} />
-            <Route path="competences/bilans" element={<PlaceholderPage />} />
-            <Route path="results/livret" element={<PlaceholderPage />} />
-            <Route path="results/summary" element={<PlaceholderPage />} />
-            <Route path="meetings" element={<PlaceholderPage />} />
-            <Route path="rooms" element={<PlaceholderPage />} />
-            <Route path="casier" element={<PlaceholderPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="messaging/new" element={<NewMessagePage />} />
-          </Route>
-          <Route
-            path="*"
-            element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />}
-          />
-        </Routes>
+        <Suspense fallback={<RouteLoadingFallback />}>
+          <Routes>
+            <Route
+              path="/login"
+              element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+            />
+            <Route
+              path="/"
+              element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" replace />}
+            >
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="timetable" element={<TimetablePage />} />
+              <Route path="timetable/multi" element={<PlaceholderPage />} />
+              <Route path="grades" element={<GradesPage />} />
+              <Route path="grades/edit" element={<PlaceholderPage />} />
+              <Route path="grades/appreciations" element={<PlaceholderPage />} />
+              <Route path="homework" element={<HomeworkPage />} />
+              <Route path="homework/edit" element={<HomeworkEditPage />} />
+              <Route path="homework/planning" element={<PlaceholderPage />} />
+              <Route path="homework/exams" element={<PlaceholderPage />} />
+              <Route path="homework/summary" element={<PlaceholderPage />} />
+              <Route path="homework/content" element={<PlaceholderPage />} />
+              <Route path="messaging" element={<MessagingPage />} />
+              <Route path="attendance" element={<AttendancePage />} />
+              <Route path="attendance/call" element={<AttendanceCallPage />} />
+              <Route path="attendance/sanctions" element={<PlaceholderPage />} />
+              <Route path="informations" element={<InformationsPage />} />
+              <Route path="services" element={<PlaceholderPage />} />
+              <Route path="students" element={<PlaceholderPage />} />
+              <Route path="trombinoscope" element={<PlaceholderPage />} />
+              <Route path="teachers" element={<PlaceholderPage />} />
+              <Route path="resources/students" element={<PlaceholderPage />} />
+              <Route path="resources/teachers" element={<PlaceholderPage />} />
+              <Route path="qcm" element={<QCMPage />} />
+              <Route path="forums" element={<PlaceholderPage />} />
+              <Route path="progressions" element={<PlaceholderPage />} />
+              <Route path="programs" element={<PlaceholderPage />} />
+              <Route path="bulletins" element={<BulletinsPage />} />
+              <Route path="bulletins/appreciations" element={<PlaceholderPage />} />
+              <Route path="bulletins/archive" element={<PlaceholderPage />} />
+              <Route path="competences/referentiels" element={<CompetencesPage />} />
+              <Route path="competences/evaluations" element={<PlaceholderPage />} />
+              <Route path="competences/suivis" element={<CompetencesPage />} />
+              <Route path="competences/bilans" element={<PlaceholderPage />} />
+              <Route path="results/livret" element={<PlaceholderPage />} />
+              <Route path="results/summary" element={<PlaceholderPage />} />
+              <Route path="meetings" element={<PlaceholderPage />} />
+              <Route path="rooms" element={<PlaceholderPage />} />
+              <Route path="casier" element={<PlaceholderPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="messaging/new" element={<NewMessagePage />} />
+            </Route>
+            <Route
+              path="*"
+              element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />}
+            />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </ErrorBoundary>
   );

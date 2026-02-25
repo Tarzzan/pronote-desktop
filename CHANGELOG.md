@@ -5,6 +5,12 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.7.3] — 2026-02-25
+
+### Amélioré
+- **Performance frontend** : migration des pages vers un chargement lazy (`React.lazy` + `Suspense`) dans le routeur principal afin de réduire fortement le bundle initial chargé au démarrage.
+- **Build stable post-reprise** : conservation d'un build Vite propre après optimisation (lint, typecheck et build validés hors sandbox).
+
 ## [1.7.2] — 2026-02-25
 
 ### Corrigé
