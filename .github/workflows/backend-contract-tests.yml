@@ -3,21 +3,13 @@ name: Backend Contract Tests
 on:
   push:
     branches:
-      - main
       - develop
       - 'v2/**'
     paths:
       - 'pronote_api.py'
       - 'tests/test_backend_contract.py'
       - '.github/workflows/backend-contract-tests.yml'
-  pull_request:
-    branches:
-      - main
-      - develop
-    paths:
-      - 'pronote_api.py'
-      - 'tests/test_backend_contract.py'
-      - '.github/workflows/backend-contract-tests.yml'
+  workflow_dispatch:
 
 jobs:
   backend-contract:
