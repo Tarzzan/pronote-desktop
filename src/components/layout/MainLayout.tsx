@@ -11,7 +11,9 @@ const getInitialTheme = (): boolean => {
   try {
     const stored = localStorage.getItem('pronote_dark_mode');
     if (stored !== null) return stored === 'true';
-  } catch {}
+  } catch (error) {
+    console.debug('[MainLayout] Impossible de lire pronote_dark_mode:', error);
+  }
   return false;
 };
 
@@ -43,8 +45,12 @@ const MainLayout: React.FC = () => {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ theme: next ? 'dark' : 'light' }),
-        }).catch(() => {});
-      } catch {}
+        }).catch((error) => {
+          console.debug('[MainLayout] Persistance thème échouée:', error);
+        });
+      } catch (error) {
+        console.debug('[MainLayout] Erreur toggleDarkMode:', error);
+      }
       return next;
     });
   }, []);

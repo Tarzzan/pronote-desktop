@@ -10,10 +10,10 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.3.0-blue?style=flat-square"/>
+  <img src="https://img.shields.io/badge/version-1.7.1-blue?style=flat-square"/>
   <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey?style=flat-square"/>
-  <img src="https://img.shields.io/badge/electron-34.x-47848F?style=flat-square&logo=electron"/>
-  <img src="https://img.shields.io/badge/react-18.x-61DAFB?style=flat-square&logo=react"/>
+  <img src="https://img.shields.io/badge/electron-40.x-47848F?style=flat-square&logo=electron"/>
+  <img src="https://img.shields.io/badge/react-19.x-61DAFB?style=flat-square&logo=react"/>
   <img src="https://img.shields.io/badge/typescript-5.x-3178C6?style=flat-square&logo=typescript"/>
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square"/>
 </p>
@@ -42,6 +42,11 @@
 - Une **remontée automatique des erreurs** vers GitHub Issues
 - Une **mise à jour de version automatique** à chaque build
 
+### État du projet
+
+- Reprise en cours de route et stabilisation active depuis la version `1.7.1`.
+- Incident rencontré pendant la reprise: erreur de build locale `Cannot find native binding` (Tailwind Oxide optionnel manquant), documentée dans le changelog et adressée dans la configuration du projet.
+
 ---
 
 ## Fonctionnalités
@@ -66,17 +71,14 @@
 ### Ubuntu / Debian (recommandé)
 
 ```bash
-# Télécharger le paquet depuis les Releases
-wget https://github.com/Tarzzan/pronote-desktop/releases/download/v1.3.0/pronote-desktop_1.2.0_amd64.deb
+# Télécharger la derniere release depuis GitHub
+wget https://github.com/Tarzzan/pronote-desktop/releases/latest/download/pronote-desktop_1.7.0_amd64.deb
 
 # Installer le paquet
-sudo dpkg -i pronote-desktop_1.2.0_amd64.deb
+sudo dpkg -i pronote-desktop_1.7.0_amd64.deb
 
 # Résoudre les dépendances si nécessaire
 sudo apt-get install -f
-
-# Installer les dépendances Python (API Pronote)
-sudo pip3 install pronotepy flask flask-cors
 ```
 
 L'application apparaît dans le menu **Applications → Éducation → Pronote Desktop**.
@@ -84,15 +86,12 @@ L'application apparaît dans le menu **Applications → Éducation → Pronote D
 ### Depuis les sources
 
 ```bash
-# Prérequis : Node.js 22+, pnpm 10+, Python 3.11+
+# Prérequis : Node.js >= 22.12, pnpm 10+, Python 3.11+
 git clone https://github.com/Tarzzan/pronote-desktop.git
 cd pronote-desktop
 
 # Installer les dépendances Node
 pnpm install
-
-# Installer les dépendances Python
-sudo pip3 install pronotepy flask flask-cors
 
 # Démarrer en mode développement
 pnpm dev
@@ -175,13 +174,13 @@ pronote-desktop/
 
 | Couche | Technologie | Version | Rôle |
 |---|---|---|---|
-| Interface | React | 18.x | Composants UI |
+| Interface | React | 19.x | Composants UI |
 | Langage | TypeScript | 5.x | Typage statique |
 | Build | Vite | 7.x | Bundler de production |
 | Style | Tailwind CSS | 4.x | Styles utilitaires |
 | État | Zustand | 5.x | Gestion d'état global |
 | Routing | React Router | 7.x | Navigation SPA |
-| Desktop | Electron | 34.x | Shell natif Linux/macOS |
+| Desktop | Electron | 40.x | Shell natif Linux/macOS |
 | API Pronote | pronotepy | 3.x | Bibliothèque Python Pronote |
 | Backend proxy | Flask + Flask-CORS | 3.x | Serveur API local |
 | Dates | date-fns | 4.x | Formatage des dates en français |
@@ -215,26 +214,7 @@ Le fichier `.github/workflows/build.yml` déclenche automatiquement :
 
 ## Changelog
 
-### v1.3.0 — 2026-02-24
-
-- **Correction critique** : suppression du reset CSS `* { padding: 0 }` qui écrasait toutes les classes Tailwind en production
-- **API réelle** : intégration du backend Python Flask pour les appels API Pronote via pronotepy (remplacement des données statiques)
-- **Remontée d'erreurs** : ajout de `ErrorBoundary` React avec bouton "Signaler sur GitHub"
-- **Authentification** : correction de la gestion d'état Zustand et du retry automatique en cas d'erreur réseau
-- **Interface** : amélioration du rendu de la page Informations & sondages
-
-### v1.1.0 — 2026-02-24
-
-- Correction des données statiques → appels API réels via pronotepy
-- Correction de l'authentification (gestion des erreurs réseau, messages clairs)
-- Ajout de la GitHub Action CI/CD pour le build automatique du .deb
-- Ajout du script de versioning automatique (`bump-version.cjs`)
-
-### v1.0.1 — 2026-02-24
-
-- Première version publique
-- Tableau de bord, emploi du temps, notes, messagerie, informations, vie scolaire
-- Dark mode, sidebar responsive, authentification QR Code (OTP)
+Consultez l'historique complet des versions dans [CHANGELOG.md](CHANGELOG.md).
 
 ---
 

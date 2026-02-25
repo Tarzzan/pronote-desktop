@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./lib/store/authStore";
 import { createClient, setClient } from "./lib/pronote/client";
@@ -79,7 +79,7 @@ const App: React.FC = () => {
   const [startupError, setStartupError] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState("Initialisation...");
 
-  const initApp = async () => {
+  const initApp = useCallback(async () => {
     setStartupError(null);
     setAppReady(false);
 
@@ -134,11 +134,11 @@ const App: React.FC = () => {
       setLoading(false);
       setAppReady(true);
     }
-  };
+  }, [setAppReady, setAuthenticated, setClientInfo, setCredentials, setError, setLoading]);
 
   useEffect(() => {
     initApp();
-  }, []);
+  }, [initApp]);
 
   // Afficher l'écran de chargement
   if (!appReady) {

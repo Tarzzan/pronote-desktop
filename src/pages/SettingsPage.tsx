@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Settings, Save, RefreshCw, Loader2, CheckCircle,
-  Server, Bell, Palette, Shield, Info, ExternalLink
+  Server, Bell, Palette, Info, ExternalLink
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -111,7 +111,7 @@ const SettingsPage: React.FC = () => {
           <Settings className="w-6 h-6 text-blue-600" />
           Paramètres
         </h1>
-        <p className="text-sm text-gray-500">Configuration de Pronote Desktop v1.6.0</p>
+        <p className="text-sm text-gray-500">Configuration de Pronote Desktop v{__APP_VERSION__}</p>
       </div>
 
       <div className="space-y-6">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight, LogOut, User, X } from 'lucide-react';
+import { ChevronRight, LogOut, User, X } from 'lucide-react';
 import { useAuthStore } from '../../lib/store/authStore';
 import { setClient } from '../../lib/pronote/client';
 

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
   CheckCircle, XCircle, Clock, AlertTriangle,
-  Users, ChevronDown, Save, RefreshCw, Loader2
+  Users, ChevronDown, Save, Loader2
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -72,26 +72,21 @@ const DEMO_STUDENTS: Record<string, Student[]> = {
 // ─── Composant principal ──────────────────────────────────────────────────────
 const AttendanceCallPage: React.FC = () => {
   const today = new Date();
-  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
-  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(DEMO_LESSONS[0] ?? null);
+  const [students, setStudents] = useState<Student[]>(() => {
+    const firstLesson = DEMO_LESSONS[0];
+    return firstLesson ? (DEMO_STUDENTS[firstLesson.id] || []) : [];
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showLessonPicker, setShowLessonPicker] = useState(false);
 
-  // Charger les élèves quand un cours est sélectionné
-  useEffect(() => {
-    if (selectedLesson) {
-      setStudents(DEMO_STUDENTS[selectedLesson.id] || []);
-      setSaved(false);
-    }
-  }, [selectedLesson]);
-
-  // Sélectionner le premier cours par défaut
-  useEffect(() => {
-    if (DEMO_LESSONS.length > 0 && !selectedLesson) {
-      setSelectedLesson(DEMO_LESSONS[0]);
-    }
-  }, []);
+  const handleLessonSelect = (lesson: Lesson) => {
+    setSelectedLesson(lesson);
+    setStudents(DEMO_STUDENTS[lesson.id] || []);
+    setSaved(false);
+    setShowLessonPicker(false);
+  };
 
   const updateStatus = (studentId: string, status: AttendanceStatus) => {
     setStudents(prev => prev.map(s =>
@@ -167,7 +162,7 @@ const AttendanceCallPage: React.FC = () => {
               {DEMO_LESSONS.map(lesson => (
                 <button
                   key={lesson.id}
-                  onClick={() => { setSelectedLesson(lesson); setShowLessonPicker(false); }}
+                  onClick={() => handleLessonSelect(lesson)}
                   className={`w-full text-left px-5 py-3 hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0 ${selectedLesson?.id === lesson.id ? 'bg-blue-50' : ''}`}
                 >
                   <div className="font-medium text-gray-900">{lesson.subject} — {lesson.className}</div>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { format, addDays } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import {
   BookOpen, Save, Loader2, CheckCircle, Calendar,
   Users, FileText, Trash2, Plus

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Award, BookOpen, CheckCircle, Circle, AlertCircle, XCircle } from 'lucide-react';
 
@@ -45,19 +45,9 @@ const DEMO_COMPETENCES: Competence[] = [
 ];
 
 const CompetencesPage: React.FC = () => {
-  const [competences, setCompetences] = useState<Competence[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [competences] = useState<Competence[]>(DEMO_COMPETENCES);
+  const [loading] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState<string>('all');
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    // Simuler un chargement API
-    await new Promise((r) => setTimeout(r, 600));
-    setCompetences(DEMO_COMPETENCES);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { loadData(); }, [loadData]);
 
   const domains = ['all', ...Array.from(new Set(competences.map((c) => c.domain)))];
   const filtered = selectedDomain === 'all' ? competences : competences.filter((c) => c.domain === selectedDomain);

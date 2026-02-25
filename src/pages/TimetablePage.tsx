@@ -31,7 +31,7 @@ const TimetablePage: React.FC = () => {
       }
     };
     loadLessons();
-  }, [currentWeek]);
+  }, [weekStart]);
 
   const getLessonsForDay = (dayIndex: number) => {
     const day = addDays(weekStart, dayIndex);

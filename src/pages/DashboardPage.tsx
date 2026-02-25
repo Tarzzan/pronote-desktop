@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis,
-  CartesianGrid, ResponsiveContainer, Legend,
+  CartesianGrid, ResponsiveContainer,
 } from 'recharts';
 import { getClient } from '../lib/pronote/client';
 import type { Lesson, Homework, Discussion, Information } from '../types/pronote';

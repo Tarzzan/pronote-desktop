@@ -5,6 +5,17 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.7.1] — 2026-02-25
+
+### Corrigé
+- **Stabilisation audit/CI** : ajout d'une configuration ESLint v9 (`eslint.config.mjs`) et correction des erreurs bloquantes de lint (imports inutilisés, blocs vides, typage explicite).
+- **Cohérence dépôt GitHub** : correction des métadonnées `homepage`, `repository` et `bugs` dans `package.json` pour pointer vers `Tarzzan/pronote-desktop`.
+- **Pré-requis outillage** : ajout de `.nvmrc` et du champ `engines` (`Node >= 22.12`, `pnpm >= 10`) pour éviter les écarts entre local et CI.
+- **Bug build local documenté et contourné** : déclaration explicite du binding optionnel `@tailwindcss/oxide-linux-x64-gnu` pour traiter l'erreur `Cannot find native binding` rencontrée durant la reprise.
+
+### Documentation
+- **Reprise du projet en cours de route** : README aligné avec l'état réel (versions, installation, stack, renvoi vers le changelog complet) afin de clarifier la continuité après les corrections de stabilité.
+
 ## [1.7.0] — 2026-02-25
 
 ### Corrigé

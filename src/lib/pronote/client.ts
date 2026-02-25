@@ -233,7 +233,6 @@ export class PronoteClient {
     const makeDate = (m: number, d: number) => new Date(2025, m - 1, d);
     const maths = { id: '1', name: 'MATHÉMATIQUES', groups: false };
     const fr = { id: '2', name: 'FRANÇAIS', groups: false };
-    const hist = { id: '3', name: 'HISTOIRE-GÉOGRAPHIE', groups: false };
     return [
       { id: '1', grade: '14', out_of: '20', default_out_of: '20', date: makeDate(10, 5), subject: maths, period, average: '11.5', max: '18', min: '4', coefficient: '2', comment: 'Contrôle fonctions affines', is_bonus: false, is_optionnal: false, is_out_of_20: true },
       { id: '2', grade: '16', out_of: '20', default_out_of: '20', date: makeDate(10, 15), subject: maths, period, average: '12', max: '19', min: '5', coefficient: '1', comment: 'Devoir maison', is_bonus: false, is_optionnal: false, is_out_of_20: true },

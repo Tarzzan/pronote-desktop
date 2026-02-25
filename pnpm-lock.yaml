@@ -51,6 +51,9 @@ importers:
       '@eslint/js':
         specifier: ^9.39.1
         version: 9.39.3
+      '@tailwindcss/oxide-linux-x64-gnu':
+        specifier: 4.2.1
+        version: 4.2.1
       '@types/crypto-js':
         specifier: ^4.2.2
         version: 4.2.2
@@ -727,7 +730,6 @@ packages:
     engines: {node: '>= 20'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@tailwindcss/oxide-linux-x64-musl@4.2.1':
     resolution: {integrity: sha512-5r1X2FKnCMUPlXTWRYpHdPYUY6a1Ar/t7P24OuiEdEOmms5lyqjDRvVY1yy9Rmioh+AunQ0rWiOTPE8F9A3v5g==}
@@ -3445,8 +3447,7 @@ snapshots:
   '@tailwindcss/oxide-linux-arm64-musl@4.2.1':
     optional: true
 
-  '@tailwindcss/oxide-linux-x64-gnu@4.2.1':
-    optional: true
+  '@tailwindcss/oxide-linux-x64-gnu@4.2.1': {}
 
   '@tailwindcss/oxide-linux-x64-musl@4.2.1':
     optional: true

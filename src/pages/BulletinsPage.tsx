@@ -17,6 +17,11 @@ interface GradeEntry {
   max: number;
   appreciation?: string;
 }
+interface ClientGrade {
+  grade?: string | number | null;
+  out_of?: string | number | null;
+  subject?: { name?: string } | null;
+}
 
 const BulletinsPage: React.FC = () => {
   const [periods, setPeriods] = useState<Period[]>([]);
@@ -54,11 +59,11 @@ const BulletinsPage: React.FC = () => {
       const gradesData = await client.getGrades(periodObj);
       // Agréger par matière
       const bySubject: Record<string, number[]> = {};
-      gradesData.forEach((g: any) => {
+      gradesData.forEach((g: ClientGrade) => {
         const name = g.subject?.name || 'Autre';
         if (!bySubject[name]) bySubject[name] = [];
-        if (g.grade !== undefined && g.grade !== null && !isNaN(parseFloat(g.grade))) {
-          bySubject[name].push(parseFloat(g.grade) / (parseFloat(g.out_of) || 20) * 20);
+        if (g.grade !== undefined && g.grade !== null && !isNaN(parseFloat(String(g.grade)))) {
+          bySubject[name].push(parseFloat(String(g.grade)) / (parseFloat(String(g.out_of ?? 20)) || 20) * 20);
         }
       });
       const entries: GradeEntry[] = Object.entries(bySubject).map(([subject, values]) => ({
