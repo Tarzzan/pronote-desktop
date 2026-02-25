@@ -146,6 +146,100 @@ class BackendFactoryContractTests(unittest.TestCase):
                 api.build_backend_adapter()
 
 
+class RefonteAdapterBehaviorTests(unittest.TestCase):
+    def setUp(self):
+        self.api = _import_pronote_api("pronotepy-refonte")
+
+    def test_refonte_prefers_teacher_client_by_default(self):
+        calls = []
+
+        class TeacherClientOk:
+            def __init__(self, pronote_url: str, username: str = "", password: str = ""):
+                calls.append("teacher")
+                self.logged_in = True
+
+        class ClientShouldNotRun:
+            def __init__(self, pronote_url: str, username: str = "", password: str = ""):
+                calls.append("client")
+                self.logged_in = True
+
+        with mock.patch.object(self.api.pronotepy, "TeacherClient", TeacherClientOk), mock.patch.object(
+            self.api.pronotepy, "Client", ClientShouldNotRun
+        ):
+            with mock.patch.dict(os.environ, {"PRONOTE_REFRONTE_PREFER_TEACHER_CLIENT": "1"}, clear=False):
+                adapter = self.api.PronotepyRefonteAdapter()
+                logged = adapter.login("https://demo.example/pronote", "demo", "ok")
+
+        self.assertTrue(logged)
+        self.assertEqual(calls, ["teacher"])
+        self.assertEqual(adapter._client_kind, "pronotepy.TeacherClient")
+
+    def test_refonte_falls_back_to_client_when_teacher_raises(self):
+        calls = []
+
+        class TeacherClientFail:
+            def __init__(self, pronote_url: str, username: str = "", password: str = ""):
+                calls.append("teacher")
+                raise RuntimeError("teacher failure")
+
+        class ClientOk:
+            def __init__(self, pronote_url: str, username: str = "", password: str = ""):
+                calls.append("client")
+                self.logged_in = True
+
+        with mock.patch.object(self.api.pronotepy, "TeacherClient", TeacherClientFail), mock.patch.object(
+            self.api.pronotepy, "Client", ClientOk
+        ):
+            with mock.patch.dict(os.environ, {"PRONOTE_REFRONTE_PREFER_TEACHER_CLIENT": "1"}, clear=False):
+                adapter = self.api.PronotepyRefonteAdapter()
+                logged = adapter.login("https://demo.example/pronote", "demo", "ok")
+
+        self.assertTrue(logged)
+        self.assertEqual(calls, ["teacher", "client"])
+        self.assertEqual(adapter._client_kind, "pronotepy.Client")
+
+    def test_refonte_can_prefer_client_when_flag_disabled(self):
+        calls = []
+
+        class TeacherClientOk:
+            def __init__(self, pronote_url: str, username: str = "", password: str = ""):
+                calls.append("teacher")
+                self.logged_in = True
+
+        class ClientFail:
+            def __init__(self, pronote_url: str, username: str = "", password: str = ""):
+                calls.append("client")
+                raise RuntimeError("client failure")
+
+        with mock.patch.object(self.api.pronotepy, "TeacherClient", TeacherClientOk), mock.patch.object(
+            self.api.pronotepy, "Client", ClientFail
+        ):
+            with mock.patch.dict(os.environ, {"PRONOTE_REFRONTE_PREFER_TEACHER_CLIENT": "0"}, clear=False):
+                adapter = self.api.PronotepyRefonteAdapter()
+                logged = adapter.login("https://demo.example/pronote", "demo", "ok")
+
+        self.assertTrue(logged)
+        self.assertEqual(calls, ["client", "teacher"])
+        self.assertEqual(adapter._client_kind, "pronotepy.TeacherClient")
+
+    def test_refonte_raises_adapter_error_when_all_candidates_fail(self):
+        class TeacherClientFail:
+            def __init__(self, pronote_url: str, username: str = "", password: str = ""):
+                raise RuntimeError("teacher failure")
+
+        class ClientFail:
+            def __init__(self, pronote_url: str, username: str = "", password: str = ""):
+                raise RuntimeError("client failure")
+
+        with mock.patch.object(self.api.pronotepy, "TeacherClient", TeacherClientFail), mock.patch.object(
+            self.api.pronotepy, "Client", ClientFail
+        ):
+            with mock.patch.dict(os.environ, {"PRONOTE_REFRONTE_PREFER_TEACHER_CLIENT": "1"}, clear=False):
+                adapter = self.api.PronotepyRefonteAdapter()
+                with self.assertRaises(self.api.AdapterError):
+                    adapter.login("https://demo.example/pronote", "demo", "bad")
+
+
 class BackendRoutesContractTests(unittest.TestCase):
     def setUp(self):
         self.api = _import_pronote_api("pronotepy-sync")
