@@ -74,11 +74,22 @@ def _import_pronote_api(adapter_name: str = "pronotepy-sync"):
 
 
 class DummyAdapter:
-    def __init__(self, *, login_result=True, logged_in=False, lessons=None, periods=None):
+    def __init__(
+        self,
+        *,
+        login_result=True,
+        logged_in=False,
+        lessons=None,
+        periods=None,
+        discussions=None,
+        informations=None,
+    ):
         self._login_result = login_result
         self._logged_in = logged_in
         self._lessons = lessons or []
         self._periods = periods or []
+        self._discussions = discussions or []
+        self._informations = informations or []
         self.login_calls = []
 
     def login(self, pronote_url, username, password):
@@ -109,10 +120,10 @@ class DummyAdapter:
         return list(self._periods)
 
     def get_discussions(self):
-        return []
+        return list(self._discussions)
 
     def get_informations(self):
-        return []
+        return list(self._informations)
 
 
 class BackendFactoryContractTests(unittest.TestCase):
@@ -369,6 +380,62 @@ class BackendRoutesContractTests(unittest.TestCase):
         self.assertEqual(body[0]["id"], "d1")
         self.assertEqual(body[0]["minutes"], 7)
         self.assertEqual(body[0]["reasons"], ["Transport"])
+
+    def test_discussions_and_informations_require_authentication(self):
+        self.api._adapter = DummyAdapter(logged_in=False)
+        for endpoint in ("/api/discussions", "/api/informations"):
+            response = self.client.get(endpoint)
+            self.assertEqual(response.status_code, 401)
+            self.assertEqual(response.get_json(), {"error": "Non connecté"})
+
+    def test_discussions_serialization_contract(self):
+        message = types.SimpleNamespace(
+            id="m1",
+            author="Mme Martin",
+            content="Rappel contrôle demain",
+            date=dt.datetime(2026, 2, 12, 8, 45),
+            seen=True,
+        )
+        discussion = types.SimpleNamespace(
+            id="dsc-1",
+            subject="Classe 1G1",
+            creator="Direction",
+            unread=False,
+            date=dt.datetime(2026, 2, 12, 8, 30),
+            messages=[message],
+        )
+        self.api._adapter = DummyAdapter(logged_in=True, discussions=[discussion])
+
+        response = self.client.get("/api/discussions")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]["id"], "dsc-1")
+        self.assertEqual(body[0]["subject"], "Classe 1G1")
+        self.assertEqual(len(body[0]["messages"]), 1)
+        self.assertEqual(body[0]["messages"][0]["id"], "m1")
+        self.assertEqual(body[0]["messages"][0]["author"], "Mme Martin")
+
+    def test_informations_serialization_contract(self):
+        info = types.SimpleNamespace(
+            id="info-1",
+            title="Sortie scolaire",
+            author="Administration",
+            content="Prévoir une autorisation parentale.",
+            creation_date=dt.datetime(2026, 2, 13, 9, 0),
+            read=False,
+            category="Vie scolaire",
+        )
+        self.api._adapter = DummyAdapter(logged_in=True, informations=[info])
+
+        response = self.client.get("/api/informations")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]["id"], "info-1")
+        self.assertEqual(body[0]["title"], "Sortie scolaire")
+        self.assertEqual(body[0]["author"], "Administration")
+        self.assertEqual(body[0]["read"], False)
 
 
 if __name__ == "__main__":
