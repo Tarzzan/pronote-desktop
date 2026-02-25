@@ -9,9 +9,9 @@
 
 | Champ | Valeur |
 |---|---|
-| **Version publiée** | v1.6.1 |
+| **Version publiée** | v1.7.0 |
 | **Dépôt GitHub** | https://github.com/Tarzzan/pronote-desktop |
-| **Dernière release** | https://github.com/Tarzzan/pronote-desktop/releases/tag/v1.6.1 |
+| **Dernière release** | https://github.com/Tarzzan/pronote-desktop/releases/tag/v1.7.0 |
 | **Type de paquet** | `.deb` offline amd64 (Ubuntu 22.04 / 24.04) |
 | **Wheels Python** | 19 wheels CP312 dans `/usr/lib/pronote-desktop/wheels/` |
 | **Venv** | `/usr/lib/pronote-desktop/python-env` |
@@ -31,7 +31,7 @@
 | v1.4.0 | 2026-02 | Icône, systemd, AppStream, vérificateur MAJ, conffiles |
 | v1.5.0 | 2026-02 | Port configurable, thème persistant, notifications, icône SVG, captures AppStream |
 | v1.6.0 | 2026-02 | Page appel présence, Paramètres, Nouveau message, Saisie devoirs, mémorisation identifiants |
-| v1.6.1 | 2026-02 | **Correctifs critiques** : wheels CP312, Flask sert le frontend, launcher Chrome --app |
+| v1.7.0 | 2026-02 | **Correctifs critiques** : wheels CP312, Flask sert le frontend, launcher Chrome --app |
 
 ---
 

@@ -1,7 +1,7 @@
 {
   "project": "pronote-desktop",
-  "current_version": "1.4.0",
-  "next_version": "1.5.0",
+  "current_version": "1.7.0",
+  "next_version": "1.8.0",
   "architecture": "amd64",
   "maintainer": "Tarzzan <tarzzan@users.noreply.github.com>",
   "homepage": "https://github.com/Tarzzan/pronote-desktop",
@@ -58,7 +58,14 @@
     "launcher": "usr/bin/pronote-desktop",
     "desktop_entry": "usr/share/applications/pronote-desktop.desktop",
     "icons": "usr/share/icons/hicolor/{size}x{size}/apps/pronote-desktop.png",
-    "icon_sizes": [16, 32, 48, 128, 256, 512],
+    "icon_sizes": [
+      16,
+      32,
+      48,
+      128,
+      256,
+      512
+    ],
     "metainfo": "usr/share/metainfo/fr.pronote.desktop.metainfo.xml",
     "systemd": "etc/systemd/system/pronote-desktop-api.service",
     "config": "etc/pronote-desktop/config.json"

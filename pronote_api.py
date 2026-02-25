@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Pronote Desktop — Serveur API Python (proxy pronotepy)
-Version: 1.6.1
+Version: 1.7.0
 Ce serveur Flask fait le pont entre l'interface React et l'API Pronote
 via la bibliothèque pronotepy.
 """
@@ -33,7 +33,11 @@ def load_config():
 CONFIG = load_config()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-app = Flask(__name__, static_folder=os.path.join(BASE_DIR, 'assets'), static_url_path='/assets')
+# DIST_DIR : répertoire du build Vite (dist/ en dev, BASE_DIR en production installée)
+# En production (.deb), les assets sont copiés directement dans BASE_DIR (index.html + assets/)
+# En développement, ils sont dans BASE_DIR/dist/
+DIST_DIR = os.path.join(BASE_DIR, 'dist') if os.path.isdir(os.path.join(BASE_DIR, 'dist')) else BASE_DIR
+app = Flask(__name__, static_folder=os.path.join(DIST_DIR, 'assets'), static_url_path='/assets')
 CORS(app, origins=["*"])
 
 # Session Pronote en mémoire
@@ -153,18 +157,23 @@ def info_to_dict(i) -> dict:
 @app.route('/')
 def index():
     """Sert le frontend React (SPA)."""
-    return send_from_directory(BASE_DIR, 'index.html')
+    return send_from_directory(DIST_DIR, 'index.html')
 
 @app.route('/<path:path>')
 def spa_fallback(path):
-    """Fallback SPA : toutes les routes non-API renvoient index.html."""
+    """Fallback SPA : sert les fichiers statiques existants, sinon renvoie index.html."""
     if path.startswith('api/'):
         return jsonify({"error": "Not found"}), 404
-    return send_from_directory(BASE_DIR, 'index.html')
+    # Servir les fichiers statiques existants (JS, CSS, images, fonts…)
+    full_path = os.path.join(DIST_DIR, path)
+    if os.path.isfile(full_path):
+        return send_from_directory(DIST_DIR, path)
+    # Fallback SPA : toutes les routes React renvoient index.html
+    return send_from_directory(DIST_DIR, 'index.html')
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    return jsonify({"status": "ok", "version": "1.6.1"})
+    return jsonify({"status": "ok", "version": "1.7.0"})
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -397,4 +406,9 @@ def patch_config():
 
 if __name__ == '__main__':
     port = CONFIG.get('api_port', 5174)
-    app.run(host='127.0.0.1', port=port, debug=False)
+    # api_host configurable dans /etc/pronote-desktop/config.json
+    # Valeur par défaut : 127.0.0.1 (local uniquement)
+    # Pour accès LAN/WAN : définir "api_host": "0.0.0.0"
+    host = CONFIG.get('api_host', '127.0.0.1')
+    print(f"Pronote Desktop API v1.7.0 — http://{host}:{port}")
+    app.run(host=host, port=port, debug=False)

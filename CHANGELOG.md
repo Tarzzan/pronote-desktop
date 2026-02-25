@@ -1,5 +1,109 @@
 # Changelog
 
+## [1.7.0] — 2026-02-25
+### 🐛 Correctifs Critiques (Rapport Confrère)
+- **Dépendances Python 3.12** : le script d'installation (`postinst.sh`) a été rendu plus robuste. Il détecte la version de Python, utilise `--system-site-packages` pour une meilleure compatibilité, et inclut un fallback réseau pour `pip` si les wheels hors-ligne échouent, garantissant le démarrage sur Ubuntu 22.04 et 24.04.
+- **API Hardcodée (`127.0.0.1`)** : l'URL de l'API dans le client TypeScript (`src/lib/pronote/client.ts`) est maintenant relative (`window.location.origin + '/api'`). Cela permet à l'application d'être accessible depuis le réseau local (LAN/WAN), par exemple sur un téléphone.
+- **UI non servie (404 sur `/`)** : le serveur Flask (`pronote_api.py`) sert maintenant correctement l'interface React. La configuration de Vite (`vite.config.ts`) a été ajustée pour générer des chemins d'assets absolus, et le fallback SPA de Flask a été amélioré pour servir les fichiers statiques et `index.html`.
+- **Bind Backend Configurable** : le serveur Flask écoute désormais sur l'hôte défini par `api_host` dans `config.json` (par défaut `127.0.0.1`). Pour un accès réseau, il suffit de le changer pour `0.0.0.0`.
+- **Version UI Incohérente** : la version de l'application est maintenant injectée au moment du build depuis `package.json` dans toute l'interface. Fini les versions hardcodées et incohérentes entre le paquet et l'UI.
+
+### ✍️ Changelog
+- **Reconstitution** : les entrées manquantes pour les versions `v1.3.1` à `v1.6.1` ont été reconstituées à partir de l'historique des commits Git.
+- **Processus de mise à jour** : le script `bump-version.cjs` a été amélioré pour mettre à jour automatiquement la version dans `package.json`, `pronote_api.py` et `postinst.sh`, simplifiant la maintenance.
+
+---
+## [1.6.1] — 2026-02-24
+### Corrigé
+- **Correctifs critiques Ubuntu 24.04** : intégration de wheels Python `cp312`, configuration de Flask pour servir l'UI, et ajustement du lanceur pour utiliser le mode `--app` de Chrome.
+
+---
+## [1.6.0] — 2026-02-24
+### Ajouté
+- **Page Appel de présence** : interface complète pour réaliser l'appel en classe avec les statuts Présent, Absent, Retard, Exclu.
+- **Page Paramètres** : configuration du port, thème, notifications et URL de l'ENT.
+- **Page Nouveau message** : composition de messages avec recherche de destinataires.
+- **Page Saisie de devoirs** : formulaire pour ajouter des devoirs avec une durée estimée.
+- **Mémorisation des identifiants** sur la page de connexion.
+
+---
+## [1.5.0] — 2026-02-24
+### Ajouté
+- **Port API configurable** via `/etc/pronote-desktop/config.json`.
+- **Persistance du thème** (clair/sombre) dans la configuration locale.
+- **Notifications desktop** via `libnotify` pour les événements importants.
+- **Icône SVG scalable** pour une meilleure qualité d'affichage.
+- **Captures d'écran** pour AppStream.
+
+---
+## [1.4.0] — 2026-02-24
+### Ajouté
+- **Icône d'application** multi-résolution.
+- **Service systemd** (`pronote-desktop-api.service`) pour un démarrage automatique du backend.
+- **Vérificateur de mises à jour** non-bloquant.
+- **Métadonnées AppStream** pour une meilleure intégration dans les logithèques (GNOME Software, etc.).
+- **Gestion des fichiers de configuration** (`conffiles`) pour préserver les réglages utilisateur lors des mises à jour.
+
+---
+## [1.3.1] — 2026-02-24
+### Corrigé
+- **Compatibilité Ubuntu 24.04 (PEP 668)** : le chemin de l'environnement virtuel Python a été corrigé pour être cohérent avec les nouvelles politiques système.
+
+---
+# Changelog
+
+## [1.7.0] — 2026-02-25
+### 🐛 Correctifs Critiques (Rapport Confrère)
+- **Dépendances Python 3.12** : le script d'installation (`postinst.sh`) a été rendu plus robuste. Il détecte la version de Python, utilise `--system-site-packages` pour une meilleure compatibilité, et inclut un fallback réseau pour `pip` si les wheels hors-ligne échouent, garantissant le démarrage sur Ubuntu 22.04 et 24.04.
+- **API Hardcodée (`127.0.0.1`)** : l'URL de l'API dans le client TypeScript (`src/lib/pronote/client.ts`) est maintenant relative (`window.location.origin + '/api'`). Cela permet à l'application d'être accessible depuis le réseau local (LAN/WAN), par exemple sur un téléphone.
+- **UI non servie (404 sur `/`)** : le serveur Flask (`pronote_api.py`) sert maintenant correctement l'interface React. La configuration de Vite (`vite.config.ts`) a été ajustée pour générer des chemins d'assets absolus, et le fallback SPA de Flask a été amélioré pour servir les fichiers statiques et `index.html`.
+- **Bind Backend Configurable** : le serveur Flask écoute désormais sur l'hôte défini par `api_host` dans `config.json` (par défaut `127.0.0.1`). Pour un accès réseau, il suffit de le changer pour `0.0.0.0`.
+- **Version UI Incohérente** : la version de l'application est maintenant injectée au moment du build depuis `package.json` dans toute l'interface. Fini les versions hardcodées et incohérentes entre le paquet et l'UI.
+
+### ✍️ Changelog
+- **Reconstitution** : les entrées manquantes pour les versions `v1.3.1` à `v1.6.1` ont été reconstituées à partir de l'historique des commits Git.
+- **Processus de mise à jour** : le script `bump-version.cjs` a été amélioré pour mettre à jour automatiquement la version dans `package.json`, `pronote_api.py` et `postinst.sh`, simplifiant la maintenance.
+
+---
+## [1.6.1] — 2026-02-24
+### Corrigé
+- **Correctifs critiques Ubuntu 24.04** : intégration de wheels Python `cp312`, configuration de Flask pour servir l'UI, et ajustement du lanceur pour utiliser le mode `--app` de Chrome.
+
+---
+## [1.6.0] — 2026-02-24
+### Ajouté
+- **Page Appel de présence** : interface complète pour réaliser l'appel en classe avec les statuts Présent, Absent, Retard, Exclu.
+- **Page Paramètres** : configuration du port, thème, notifications et URL de l'ENT.
+- **Page Nouveau message** : composition de messages avec recherche de destinataires.
+- **Page Saisie de devoirs** : formulaire pour ajouter des devoirs avec une durée estimée.
+- **Mémorisation des identifiants** sur la page de connexion.
+
+---
+## [1.5.0] — 2026-02-24
+### Ajouté
+- **Port API configurable** via `/etc/pronote-desktop/config.json`.
+- **Persistance du thème** (clair/sombre) dans la configuration locale.
+- **Notifications desktop** via `libnotify` pour les événements importants.
+- **Icône SVG scalable** pour une meilleure qualité d'affichage.
+- **Captures d'écran** pour AppStream.
+
+---
+## [1.4.0] — 2026-02-24
+### Ajouté
+- **Icône d'application** multi-résolution.
+- **Service systemd** (`pronote-desktop-api.service`) pour un démarrage automatique du backend.
+- **Vérificateur de mises à jour** non-bloquant.
+- **Métadonnées AppStream** pour une meilleure intégration dans les logithèques (GNOME Software, etc.).
+- **Gestion des fichiers de configuration** (`conffiles`) pour préserver les réglages utilisateur lors des mises à jour.
+
+---
+## [1.3.1] — 2026-02-24
+### Corrigé
+- **Compatibilité Ubuntu 24.04 (PEP 668)** : le chemin de l'environnement virtuel Python a été corrigé pour être cohérent avec les nouvelles politiques système.
+
+---
+# Changelog
+
 ## [1.6.1] — 2026-02-24
 
 ### Correctifs critiques (rapport testeur Ubuntu 24.04)
@@ -159,6 +263,13 @@ et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
 ---
 
-[1.2.0]: https://github.com/Tarzzan/pronote-desktop/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/Tarzzan/pronote-desktop/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/Tarzzan/pronote-desktop/releases/tag/v1.0.1
+[1.1.0]: https://github.com/Tarzzan/pronote-desktop/compare/v1.0.1...v1.1.0
+[1.2.0]: https://github.com/Tarzzan/pronote-desktop/compare/v1.1.0...v1.2.0
+[1.3.0]: https://github.com/Tarzzan/pronote-desktop/compare/v1.2.0...v1.3.0
+[1.3.1]: https://github.com/Tarzzan/pronote-desktop/compare/v1.3.0...v1.3.1
+[1.4.0]: https://github.com/Tarzzan/pronote-desktop/compare/v1.3.1...v1.4.0
+[1.5.0]: https://github.com/Tarzzan/pronote-desktop/compare/v1.4.0...v1.5.0
+[1.6.0]: https://github.com/Tarzzan/pronote-desktop/compare/v1.5.0...v1.6.0
+[1.6.1]: https://github.com/Tarzzan/pronote-desktop/compare/v1.6.0...v1.6.1
+[1.7.0]: https://github.com/Tarzzan/pronote-desktop/compare/v1.6.1...v1.7.0

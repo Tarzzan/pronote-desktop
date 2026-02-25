@@ -1,7 +1,7 @@
 /**
- * Pronote Desktop — Client API v1.6.0
+ * Pronote Desktop — Client API v1.7.0
  * Connexion réelle à l'API Pronote via le serveur proxy Python (pronotepy)
- * Le serveur Python tourne sur http://127.0.0.1:5174 et expose une API REST
+ * Le serveur Python Flask sert à la fois l'UI et l'API REST sur le même port.
  */
 import axios from 'axios';
 import type { AxiosInstance } from 'axios';
@@ -11,8 +11,10 @@ import type {
   ClientInfo, PronoteCredentials
 } from '../../types/pronote';
 
-// ─── URL de l'API Python locale ───────────────────────────────────────────────
-const API_BASE = 'http://127.0.0.1:5174/api';
+// ─── URL de l'API : chemin relatif à l'origine courante ───────────────────────
+// Utiliser window.location.origin + '/api' garantit que l'UI fonctionne
+// aussi bien en local (127.0.0.1) que sur LAN/WAN (IP de la machine hôte).
+const API_BASE = `${window.location.origin}/api`;
 
 // ─── Helpers de parsing des dates ISO ─────────────────────────────────────────
 function parseDate(s: string | null | undefined): Date {

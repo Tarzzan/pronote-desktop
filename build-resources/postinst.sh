@@ -1,7 +1,7 @@
 #!/bin/bash
-# Post-installation script for pronote-desktop v1.6.1 (offline)
+# Post-installation script for pronote-desktop v1.7.0 (offline)
 # Installation 100% hors-ligne — aucun appel réseau effectué
-# Compatible Ubuntu 22.04 (Python 3.10/3.11) et Ubuntu 24.04 (Python 3.12)
+# Compatible Ubuntu 22.04 (Python 3.10/3.11) et Ubuntu 24.04 (Python 3.12+)
 set -e
 
 INSTALL_DIR="/usr/lib/pronote-desktop"
@@ -12,7 +12,7 @@ CONFIG_DIR="/etc/pronote-desktop"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 
 echo "============================================"
-echo " Pronote Desktop v1.6.1 — Installation"
+echo " Pronote Desktop v1.7.0 — Installation"
 echo "============================================"
 
 # --- 1. Icônes et bureau ---
@@ -26,22 +26,46 @@ mkdir -p "$CONFIG_DIR"
 if [ ! -f "$CONFIG_FILE" ]; then
     cat > "$CONFIG_FILE" << 'CONFIG'
 {
-  "version": "1.6.1",
+  "version": "1.7.0",
   "theme": "light",
   "check_updates": true,
   "api_port": 5174,
+  "api_host": "127.0.0.1",
   "browser": "auto"
 }
 CONFIG
     echo "Fichier de configuration créé : $CONFIG_FILE"
 else
+    # Migration : ajouter api_host si absent (upgrade depuis version antérieure)
+    python3 -c "
+import json, sys
+cfg_path = '$CONFIG_FILE'
+try:
+    with open(cfg_path) as f:
+        d = json.load(f)
+    changed = False
+    if 'api_host' not in d:
+        d['api_host'] = '127.0.0.1'
+        changed = True
+    if changed:
+        with open(cfg_path, 'w') as f:
+            json.dump(d, f, indent=2)
+        print('  Migration : api_host ajouté à la configuration existante.')
+except Exception as e:
+    print(f'  Avertissement migration config : {e}')
+" 2>/dev/null || true
     echo "Configuration existante conservée : $CONFIG_FILE"
 fi
 
 # --- 3. Environnement virtuel Python (offline) ---
 echo "[3/5] Installation des dépendances Python (offline)..."
 
-if ! python3 -m venv --help &>/dev/null 2>&1; then
+# Détecter la version Python disponible
+PYTHON_BIN="python3"
+PYTHON_VERSION=$("$PYTHON_BIN" -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>/dev/null || echo "unknown")
+echo "  Python détecté : $PYTHON_VERSION"
+
+if ! "$PYTHON_BIN" -m venv --help &>/dev/null 2>&1; then
     echo "ERREUR : python3-venv n'est pas disponible."
     echo "Installez-le : sudo apt-get install python3-venv"
     exit 1
@@ -50,13 +74,13 @@ fi
 # Supprimer l'ancien venv (remplacé par le nouveau)
 rm -rf "$VENV_DIR" 2>/dev/null || true
 
-# Utiliser --system-site-packages pour hériter des paquets système
-# Cela garantit la compatibilité avec Python 3.12 (Ubuntu 24.04) et 3.11 (Ubuntu 22.04)
-# Les paquets système (charset-normalizer, markupsafe) sont utilisés si les wheels
-# embarqués ne correspondent pas à la version Python installée.
-python3 -m venv --system-site-packages "$VENV_DIR"
+# Créer le venv avec --system-site-packages pour hériter des paquets système.
+# Garantit la compatibilité Python 3.12 (Ubuntu 24.04) et 3.11/3.10 (Ubuntu 22.04) :
+# les paquets compilés (charset-normalizer, markupsafe, pycryptodome) dont les wheels
+# embarquées ne correspondent pas à l'ABI courant seront pris depuis le système.
+"$PYTHON_BIN" -m venv --system-site-packages "$VENV_DIR"
 
-echo "  Installation depuis $WHEELS_DIR (--no-index)..."
+echo "  Tentative d'installation depuis $WHEELS_DIR (--no-index, --no-deps)..."
 "$VENV_DIR/bin/pip" install \
     --no-index \
     --find-links "$WHEELS_DIR" \
@@ -67,16 +91,32 @@ echo "  Installation depuis $WHEELS_DIR (--no-index)..."
     urllib3 werkzeug \
     --quiet 2>/dev/null || true
 
-# Fallback : si certains wheels échouent (incompatibilité ABI), utiliser pip sans --no-index
-# pour les paquets purement Python (py3-none-any) qui ne dépendent pas de l'ABI
+# Vérification des imports critiques
 echo "  Vérification des imports critiques..."
-if ! "$VENV_DIR/bin/python3" -c "import pronotepy" 2>/dev/null; then
-    echo "  Tentative d'installation avec fallback (paquets système)..."
+MISSING_PKGS=""
+for pkg in pronotepy flask flask_cors; do
+    if ! "$VENV_DIR/bin/python3" -c "import $pkg" 2>/dev/null; then
+        MISSING_PKGS="$MISSING_PKGS $pkg"
+    fi
+done
+
+if [ -n "$MISSING_PKGS" ]; then
+    echo "  Paquets manquants :$MISSING_PKGS"
+    echo "  Tentative avec résolution des dépendances (--find-links uniquement)..."
     "$VENV_DIR/bin/pip" install \
         --no-index \
         --find-links "$WHEELS_DIR" \
         pronotepy flask flask-cors \
         --quiet 2>/dev/null || true
+
+    # Si toujours manquant, tenter une installation en ligne (fallback réseau)
+    for pkg in pronotepy flask flask_cors; do
+        if ! "$VENV_DIR/bin/python3" -c "import $pkg" 2>/dev/null; then
+            PKG_NAME=$(echo "$pkg" | tr '_' '-')
+            echo "  Fallback réseau pour $PKG_NAME..."
+            "$VENV_DIR/bin/pip" install "$PKG_NAME" --quiet 2>/dev/null || true
+        fi
+    done
 fi
 
 # Supprimer la sauvegarde si tout s'est bien passé
@@ -88,6 +128,8 @@ if "$VENV_DIR/bin/python3" -c "import pronotepy, flask, flask_cors" 2>/dev/null;
 else
     echo "  AVERTISSEMENT : vérification des imports échouée."
     echo "  Les paquets système seront utilisés si disponibles (--system-site-packages)."
+    echo "  Si le problème persiste, exécutez :"
+    echo "    sudo $VENV_DIR/bin/pip install pronotepy flask flask-cors"
 fi
 
 # --- 4. Service systemd ---
@@ -105,8 +147,12 @@ fi
 
 echo ""
 echo "============================================"
-echo " Pronote Desktop v1.6.1 installé !"
+echo " Pronote Desktop v1.7.0 installé !"
 echo " Lancez l'application :"
 echo "   • Menu Applications > Éducation"
 echo "   • Commande : pronote-desktop"
+echo ""
+echo " Accès LAN/WAN :"
+echo "   Définir api_host: \"0.0.0.0\" dans $CONFIG_FILE"
+echo "   puis : sudo systemctl restart pronote-desktop-api"
 echo "============================================"

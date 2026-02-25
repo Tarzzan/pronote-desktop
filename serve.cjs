@@ -35,5 +35,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Pronote Desktop v1.1.0 server running on http://0.0.0.0:${PORT}`);
+  const pkg = require('./package.json'); console.log(`Pronote Desktop v${pkg.version} server running on http://0.0.0.0:${PORT}`);
 });
