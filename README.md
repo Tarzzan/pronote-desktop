@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.7.4-blue?style=flat-square"/>
+  <img src="https://img.shields.io/badge/version-1.7.5-blue?style=flat-square"/>
   <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey?style=flat-square"/>
   <img src="https://img.shields.io/badge/electron-40.x-47848F?style=flat-square&logo=electron"/>
   <img src="https://img.shields.io/badge/react-19.x-61DAFB?style=flat-square&logo=react"/>
@@ -44,7 +44,7 @@
 
 ### État du projet
 
-- Reprise en cours de route et stabilisation active jusqu'à la version `1.7.4`.
+- Reprise en cours de route et stabilisation active jusqu'à la version `1.7.5`.
 - Incident rencontré pendant la reprise: erreur de build locale `Cannot find native binding` (Tailwind Oxide optionnel manquant), documentée dans le changelog et adressée dans la configuration du projet.
 - Incident runtime Linux rencontré pendant la reprise: fenêtre blanche/crash Chromium (`file://`, sandbox, GPU). Correctifs livrés en `1.7.4` (router Electron, base API, wrapper de lancement Debian).
 
@@ -73,10 +73,10 @@
 
 ```bash
 # Télécharger la derniere release depuis GitHub
-wget https://github.com/Tarzzan/pronote-desktop/releases/latest/download/pronote-desktop_1.7.4_amd64.deb
+wget https://github.com/Tarzzan/pronote-desktop/releases/latest/download/pronote-desktop_1.7.5_amd64.deb
 
 # Installer le paquet
-sudo dpkg -i pronote-desktop_1.7.4_amd64.deb
+sudo dpkg -i pronote-desktop_1.7.5_amd64.deb
 
 # Résoudre les dépendances si nécessaire
 sudo apt-get install -f

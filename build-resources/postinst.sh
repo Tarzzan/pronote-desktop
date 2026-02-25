@@ -1,5 +1,5 @@
 #!/bin/bash
-# Post-installation script for pronote-desktop v1.7.4 (offline)
+# Post-installation script for pronote-desktop v1.7.5 (offline)
 # Installation 100% hors-ligne — aucun appel réseau effectué
 # Compatible Ubuntu 22.04 (Python 3.10/3.11) et Ubuntu 24.04 (Python 3.12+)
 set -e
@@ -12,7 +12,7 @@ CONFIG_DIR="/etc/pronote-desktop"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 
 echo "============================================"
-echo " Pronote Desktop v1.7.4 — Installation"
+echo " Pronote Desktop v1.7.5 — Installation"
 echo "============================================"
 
 # --- 1. Icônes et bureau ---
@@ -26,7 +26,7 @@ mkdir -p "$CONFIG_DIR"
 if [ ! -f "$CONFIG_FILE" ]; then
     cat > "$CONFIG_FILE" << 'CONFIG'
 {
-  "version": "1.7.4",
+  "version": "1.7.5",
   "theme": "light",
   "check_updates": true,
   "api_port": 5174,
@@ -132,12 +132,16 @@ else
     echo "    sudo $VENV_DIR/bin/pip install pronotepy flask flask-cors"
 fi
 
-# --- 4. Service systemd ---
+# --- 4. Service systemd (best effort) ---
 echo "[4/5] Configuration du service systemd..."
-systemctl daemon-reload 2>/dev/null || true
-systemctl enable pronote-desktop-api.service 2>/dev/null || true
-systemctl start pronote-desktop-api.service 2>/dev/null || true
-echo "  Service pronote-desktop-api activé et démarré."
+if command -v systemctl >/dev/null 2>&1 && systemctl list-unit-files 2>/dev/null | grep -q '^pronote-desktop-api\.service'; then
+    systemctl daemon-reload 2>/dev/null || true
+    systemctl enable pronote-desktop-api.service 2>/dev/null || true
+    systemctl start pronote-desktop-api.service 2>/dev/null || true
+    echo "  Service pronote-desktop-api activé (si disponible)."
+else
+    echo "  Aucun service systemd installé: démarrage backend via le launcher utilisateur."
+fi
 
 # --- 4b. Wrapper de lancement Electron robuste ---
 # Certaines machines plantent au démarrage avec le binaire direct
@@ -146,7 +150,7 @@ echo "  Service pronote-desktop-api activé et démarré."
 if [ -x "/opt/Pronote Desktop/pronote-desktop" ]; then
     cat > /usr/bin/pronote-desktop << 'LAUNCHER'
 #!/bin/bash
-set -e
+set -u
 
 API_PORT=5174
 if [ -f "/etc/pronote-desktop/config.json" ]; then
@@ -157,11 +161,25 @@ fi
 PY_BIN="/usr/lib/pronote-desktop/python-env/bin/python3"
 BACKEND_SCRIPT="/opt/Pronote Desktop/resources/pronote_api.py"
 
-if ! curl -s --max-time 1 "http://127.0.0.1:${API_PORT}/api/health" >/dev/null 2>&1; then
+health_ok() {
+  python3 - "$API_PORT" << 'PY' >/dev/null 2>&1
+import json, sys, urllib.request
+port = sys.argv[1]
+try:
+    with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/health", timeout=1) as r:
+        data = json.loads(r.read().decode("utf-8"))
+        ok = data.get("status") == "ok"
+except Exception:
+    ok = False
+raise SystemExit(0 if ok else 1)
+PY
+}
+
+if ! health_ok; then
   if [ -x "$PY_BIN" ] && [ -f "$BACKEND_SCRIPT" ]; then
     nohup "$PY_BIN" "$BACKEND_SCRIPT" >/tmp/pronote-backend.log 2>&1 &
     for i in $(seq 1 20); do
-      if curl -s --max-time 1 "http://127.0.0.1:${API_PORT}/api/health" >/dev/null 2>&1; then
+      if health_ok; then
         break
       fi
       sleep 0.2
@@ -187,12 +205,12 @@ fi
 
 echo ""
 echo "============================================"
-echo " Pronote Desktop v1.7.4 installé !"
+echo " Pronote Desktop v1.7.5 installé !"
 echo " Lancez l'application :"
 echo "   • Menu Applications > Éducation"
 echo "   • Commande : pronote-desktop"
 echo ""
 echo " Accès LAN/WAN :"
 echo "   Définir api_host: \"0.0.0.0\" dans $CONFIG_FILE"
-echo "   puis : sudo systemctl restart pronote-desktop-api"
+echo "   puis relancer l'application."
 echo "============================================"

@@ -5,6 +5,17 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.7.5] — 2026-02-25
+
+### Corrigé
+- **Déploiement one-shot particulier** : le paquet embarque désormais explicitement `pronote_api.py` dans les ressources installées, évitant les installations où l’UI démarrait sans backend local.
+- **Connexion démo qui échoue aléatoirement** : le launcher `/usr/bin/pronote-desktop` démarre automatiquement le backend local si `/api/health` n’est pas joignable, puis attend sa disponibilité avant d’ouvrir l’application.
+- **Robustesse du launcher** : suppression de la dépendance `curl` dans le wrapper d’exécution (health-check Python natif) pour réduire les pannes environnementales chez les utilisateurs non techniques.
+- **Post-install trompeur** : la phase systemd n’annonce plus un service actif s’il n’existe pas; fallback explicite sur démarrage backend via launcher.
+
+### Ajouté
+- **Smoke-test de déploiement** : script `scripts/smoke-deploy.sh` pour valider install `.deb` + health API + login démo de bout en bout.
+
 ## [1.7.4] — 2026-02-25
 
 ### Corrigé
