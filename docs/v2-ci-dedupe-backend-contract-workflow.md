@@ -10,6 +10,8 @@
   - suppression du trigger `push` sur `main`;
   - conservation du trigger `push` sur `develop` et `v2/**`;
   - ajout de `workflow_dispatch` pour exécution manuelle.
+- Durcissement de `.github/workflows/build.yml`:
+  - ajout de `standalone: true` sur `pnpm/action-setup@v3` (jobs lint + build) pour éviter une dépendance fragile à la récupération npm de `pnpm` pendant le bootstrap CI.
 
 ## Résultat
 
