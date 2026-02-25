@@ -9,6 +9,15 @@ const GITHUB_REPO = pkg.repository?.url?.replace(/.*github\.com\//, '').replace(
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
+// Stabilisation Linux packagé:
+// - contourne le crash Chromium lié au sandbox/chemin d'installation
+// - évite les écrans blancs sur machines avec stack GPU instable
+if (!isDev && process.platform === 'linux') {
+  app.commandLine.appendSwitch('no-sandbox');
+  app.commandLine.appendSwitch('disable-gpu');
+  app.commandLine.appendSwitch('ozone-platform', 'x11');
+}
+
 // ─── Remontée d'erreurs vers GitHub ──────────────────────────────────────────
 function buildGitHubIssueUrl(error) {
   const title = `[Bug v${APP_VERSION}] ${String(error?.message || error).substring(0, 80)}`;

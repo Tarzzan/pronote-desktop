@@ -5,6 +5,15 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.7.4] — 2026-02-25
+
+### Corrigé
+- **Écran blanc en version packagée** : remplacement conditionnel de `BrowserRouter` par `HashRouter` quand l'application est chargée en `file://` (Electron), ce qui restaure correctement le rendu des routes.
+- **API inaccessible en mode `file://`** : correction de la résolution de base URL côté client (`src/lib/pronote/client.ts`) pour utiliser `http://127.0.0.1:5174/api` lorsque `window.location.origin` est invalide (`null`).
+- **Reprise en cours de route** : ajout d’un fallback de navigation dans `ErrorBoundary` compatible avec le mode hash (`#/dashboard`) pour éviter un blocage après erreur.
+- **Crash Linux au lancement (`chrome-sandbox` / chemin avec espace)** : ajout d’un wrapper `/usr/bin/pronote-desktop` dans `postinst.sh` qui lance Electron avec `--no-sandbox --disable-gpu --ozone-platform=x11`, puis correction de l’entrée `.desktop` pour utiliser ce wrapper.
+- **Post-install trompeur** : messages de version `v1.7.0` corrigés vers `v1.7.4` dans le script d’installation Debian.
+
 ## [1.7.3] — 2026-02-25
 
 ### Amélioré

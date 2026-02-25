@@ -92,6 +92,10 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
   handleReset = (): void => {
     this.setState({ hasError: false, error: null, errorInfo: null });
+    if (window.location.protocol === 'file:') {
+      window.location.hash = '#/dashboard';
+      return;
+    }
     window.location.href = '/dashboard';
   };
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Post-installation script for pronote-desktop v1.7.0 (offline)
+# Post-installation script for pronote-desktop v1.7.4 (offline)
 # Installation 100% hors-ligne — aucun appel réseau effectué
 # Compatible Ubuntu 22.04 (Python 3.10/3.11) et Ubuntu 24.04 (Python 3.12+)
 set -e
@@ -12,7 +12,7 @@ CONFIG_DIR="/etc/pronote-desktop"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 
 echo "============================================"
-echo " Pronote Desktop v1.7.0 — Installation"
+echo " Pronote Desktop v1.7.4 — Installation"
 echo "============================================"
 
 # --- 1. Icônes et bureau ---
@@ -26,7 +26,7 @@ mkdir -p "$CONFIG_DIR"
 if [ ! -f "$CONFIG_FILE" ]; then
     cat > "$CONFIG_FILE" << 'CONFIG'
 {
-  "version": "1.7.0",
+  "version": "1.7.4",
   "theme": "light",
   "check_updates": true,
   "api_port": 5174,
@@ -139,6 +139,23 @@ systemctl enable pronote-desktop-api.service 2>/dev/null || true
 systemctl start pronote-desktop-api.service 2>/dev/null || true
 echo "  Service pronote-desktop-api activé et démarré."
 
+# --- 4b. Wrapper de lancement Electron robuste ---
+# Certaines machines plantent au démarrage avec le binaire direct
+# (/opt/Pronote Desktop/pronote-desktop) à cause du sandbox Chromium
+# et/ou du rendu GPU. On force un wrapper stable.
+if [ -x "/opt/Pronote Desktop/pronote-desktop" ]; then
+    cat > /usr/bin/pronote-desktop << 'LAUNCHER'
+#!/bin/bash
+exec "/opt/Pronote Desktop/pronote-desktop" --no-sandbox --disable-gpu --ozone-platform=x11 "$@"
+LAUNCHER
+    chmod 755 /usr/bin/pronote-desktop
+fi
+
+# Corriger l'entrée desktop pour utiliser le wrapper /usr/bin
+if [ -f "/usr/share/applications/pronote-desktop.desktop" ]; then
+    sed -i 's|^Exec=.*|Exec=/usr/bin/pronote-desktop %U|' /usr/share/applications/pronote-desktop.desktop || true
+fi
+
 # --- 5. Métadonnées AppStream ---
 echo "[5/5] Mise à jour des métadonnées AppStream..."
 if command -v appstreamcli &>/dev/null; then
@@ -147,7 +164,7 @@ fi
 
 echo ""
 echo "============================================"
-echo " Pronote Desktop v1.7.0 installé !"
+echo " Pronote Desktop v1.7.4 installé !"
 echo " Lancez l'application :"
 echo "   • Menu Applications > Éducation"
 echo "   • Commande : pronote-desktop"

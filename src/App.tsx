@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useCallback, useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./lib/store/authStore";
 import { createClient, setClient } from "./lib/pronote/client";
 import LoginPage from "./pages/LoginPage";
@@ -78,6 +78,11 @@ const RouteLoadingFallback: React.FC = () => (
     <div className="w-10 h-10 border-4 border-blue-700 border-t-transparent rounded-full animate-spin" />
   </div>
 );
+
+const Router: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const isFileProtocol = window.location.protocol === "file:";
+  return isFileProtocol ? <HashRouter>{children}</HashRouter> : <BrowserRouter>{children}</BrowserRouter>;
+};
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 const App: React.FC = () => {
@@ -159,7 +164,7 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <BrowserRouter>
+      <Router>
         <Suspense fallback={<RouteLoadingFallback />}>
           <Routes>
             <Route
@@ -219,7 +224,7 @@ const App: React.FC = () => {
             />
           </Routes>
         </Suspense>
-      </BrowserRouter>
+      </Router>
     </ErrorBoundary>
   );
 };

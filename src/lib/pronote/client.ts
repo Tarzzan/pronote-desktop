@@ -11,10 +11,17 @@ import type {
   ClientInfo, PronoteCredentials
 } from '../../types/pronote';
 
-// ─── URL de l'API : chemin relatif à l'origine courante ───────────────────────
-// Utiliser window.location.origin + '/api' garantit que l'UI fonctionne
-// aussi bien en local (127.0.0.1) que sur LAN/WAN (IP de la machine hôte).
-const API_BASE = `${window.location.origin}/api`;
+// ─── URL de l'API : compatible navigateur + Electron packagé ─────────────────
+function resolveApiBase(): string {
+  // En build Electron, l'UI est souvent chargée en file://.
+  // Dans ce cas, window.location.origin vaut "null", inutilisable pour l'API.
+  if (window.location.protocol === 'file:') {
+    return 'http://127.0.0.1:5174/api';
+  }
+  return `${window.location.origin}/api`;
+}
+
+const API_BASE = resolveApiBase();
 
 // ─── Helpers de parsing des dates ISO ─────────────────────────────────────────
 function parseDate(s: string | null | undefined): Date {
