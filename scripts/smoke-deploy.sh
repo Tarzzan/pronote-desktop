@@ -21,6 +21,7 @@ launch_and_check() {
   local hold_seconds="$2"
   local display="${DISPLAY:-:0}"
   local xauth="${XAUTHORITY:-}"
+  local log_file="/tmp/pronote-smoke-ui-${run_id}.log"
 
   if [[ -z "${xauth}" ]]; then
     xauth="$(ls -1 /run/user/$(id -u)/.mutter-Xwaylandauth.* 2>/dev/null | head -n1 || true)"
@@ -29,19 +30,21 @@ launch_and_check() {
   pkill -f "/opt/Pronote Desktop/pronote-desktop" || true
   pkill -f "/opt/pronote-desktop/pronote-desktop" || true
   pkill -f "/usr/lib/pronote-desktop/pronote-desktop-bin" || true
-  DISPLAY="${display}" XAUTHORITY="${xauth}" nohup pronote-desktop >/tmp/pronote-smoke-ui-${run_id}.log 2>&1 &
+  DISPLAY="${display}" XAUTHORITY="${xauth}" nohup pronote-desktop --disable-gpu >"${log_file}" 2>&1 &
+  local ui_pid="$!"
+  disown "${ui_pid}" 2>/dev/null || true
   sleep 3
 
-  local ui_pid
-  ui_pid="$(pgrep -f '/opt/pronote-desktop/pronote-desktop|/opt/Pronote Desktop/pronote-desktop|/usr/lib/pronote-desktop/pronote-desktop-bin' | head -n1 || true)"
-  if [[ -z "${ui_pid}" ]]; then
-    echo "UI not running after launch (run=${run_id})"
+  if ! kill -0 "${ui_pid}" 2>/dev/null; then
+    echo "UI crashed before first health window (run=${run_id}, pid=${ui_pid})"
+    tail -n 80 "${log_file}" || true
     exit 1
   fi
 
   sleep "${hold_seconds}"
   if ! kill -0 "${ui_pid}" 2>/dev/null; then
-    echo "UI crashed before ${hold_seconds}s (run=${run_id})"
+    echo "UI crashed before ${hold_seconds}s (run=${run_id}, pid=${ui_pid})"
+    tail -n 80 "${log_file}" || true
     exit 1
   fi
 }
