@@ -10,12 +10,14 @@ const GITHUB_REPO = pkg.repository?.url?.replace(/.*github\.com\//, '').replace(
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
 // Stabilisation Linux packagé:
-// - contourne le crash Chromium lié au sandbox/chemin d'installation
 // - évite les écrans blancs sur machines avec stack GPU instable
+// - conserve le sandbox Chromium (plus robuste que --no-sandbox)
 if (!isDev && process.platform === 'linux') {
-  app.commandLine.appendSwitch('no-sandbox');
+  app.disableHardwareAcceleration();
   app.commandLine.appendSwitch('disable-gpu');
   app.commandLine.appendSwitch('ozone-platform', 'x11');
+  app.commandLine.appendSwitch('enable-logging');
+  app.commandLine.appendSwitch('log-file', '/tmp/pronote-electron.log');
 }
 
 // ─── Remontée d'erreurs vers GitHub ──────────────────────────────────────────

@@ -1,7 +1,7 @@
 {
   "name": "pronote-desktop",
   "private": true,
-  "version": "1.7.5",
+  "version": "1.7.8",
   "type": "module",
   "main": "electron/main.cjs",
   "description": "Application native Pronote pour Linux et macOS",
@@ -24,6 +24,7 @@
     "build:deb": "tsc -b && vite build && electron-builder --linux deb",
     "build:all": "node scripts/bump-version.cjs && tsc -b && vite build && electron-builder --linux deb",
     "lint": "eslint .",
+    "test:contrast": "node --test scripts/color-contrast.test.cjs",
     "preview": "vite preview",
     "electron": "electron electron/main.cjs",
     "electron:dev": "concurrently \"pnpm dev\" \"wait-on http://localhost:5173 && electron electron/main.cjs\""

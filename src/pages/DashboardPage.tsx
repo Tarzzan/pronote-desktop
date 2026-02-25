@@ -18,6 +18,16 @@ const cardVariants = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.4 } }),
 };
 
+const getLessonClassLabel = (lesson: Lesson): string | null => {
+  if (lesson.group_name && lesson.group_name.trim().length > 0) {
+    return lesson.group_name.trim();
+  }
+  if (Array.isArray(lesson.group_names) && lesson.group_names.length > 0) {
+    return lesson.group_names.join(', ');
+  }
+  return null;
+};
+
 const DashboardPage: React.FC = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [homework, setHomework] = useState<Homework[]>([]);
@@ -260,6 +270,7 @@ const LessonCard: React.FC<{ lesson: Lesson }> = ({ lesson }) => (
       <div className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
         <Clock className="w-3 h-3" />
         {format(lesson.start, 'HH:mm')} – {format(lesson.end, 'HH:mm')}
+        {getLessonClassLabel(lesson) && <span className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 rounded">👥 {getLessonClassLabel(lesson)}</span>}
         {lesson.classroom && <span className="bg-gray-100 dark:bg-gray-700 px-1.5 rounded">🏫 {lesson.classroom}</span>}
       </div>
     </div>

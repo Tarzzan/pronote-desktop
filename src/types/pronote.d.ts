@@ -20,6 +20,9 @@ export interface Lesson {
   background_color: string | null;
   status: string | null;
   group_name: string | null;
+  group_names?: string[];
+  teacher_names?: string[];
+  classrooms?: string[];
   memo: string | null;
 }
 

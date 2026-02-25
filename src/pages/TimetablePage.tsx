@@ -1,20 +1,38 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, User } from 'lucide-react';
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { getClient } from '../lib/pronote/client';
 import type { Lesson } from '../types/pronote';
+import { buildLessonPalette } from '../lib/ui/colorContrast';
 
 const HOURS = Array.from({ length: 11 }, (_, i) => i + 8); // 8h à 18h
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+
+const getLessonClassLabel = (lesson: Lesson): string | null => {
+  if (lesson.group_name && lesson.group_name.trim().length > 0) {
+    return lesson.group_name.trim();
+  }
+  if (Array.isArray(lesson.group_names) && lesson.group_names.length > 0) {
+    return lesson.group_names.join(', ');
+  }
+  return null;
+};
 
 const TimetablePage: React.FC = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const selectedPalette = useMemo(
+    () => (selectedLesson ? buildLessonPalette(selectedLesson.background_color) : null),
+    [selectedLesson]
+  );
 
-  const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
+  const weekStart = useMemo(
+    () => startOfWeek(currentWeek, { weekStartsOn: 1 }),
+    [currentWeek]
+  );
 
   useEffect(() => {
     const loadLessons = async () => {
@@ -135,30 +153,37 @@ const TimetablePage: React.FC = () => {
                     {dayLessons.map((lesson) => {
                       const top = getTopPercent(lesson.start);
                       const height = Math.max(getHeightPercent(lesson.start, lesson.end), 6);
-                      const color = lesson.background_color || '#4a90d9';
+                      const palette = buildLessonPalette(lesson.background_color);
+                      const classLabel = getLessonClassLabel(lesson);
+                      const isSelected = selectedLesson?.id === lesson.id;
 
                       return (
                         <button
                           key={lesson.id}
                           onClick={() => setSelectedLesson(lesson)}
-                          className="absolute left-1 right-1 rounded-lg p-1.5 text-left overflow-hidden hover:opacity-90 transition-opacity shadow-sm"
+                          className={`absolute left-1 right-1 rounded-lg p-1.5 text-left overflow-hidden transition-all shadow-sm hover:shadow-md ${isSelected ? 'ring-2 ring-offset-1' : ''}`}
                           style={{
                             top: `${top}%`,
                             height: `${height}%`,
-                            backgroundColor: color + '33',
-                            borderLeft: `3px solid ${color}`,
+                            backgroundColor: palette.cardBackground,
+                            borderLeft: `3px solid ${palette.border}`,
+                            boxShadow: isSelected ? `inset 0 0 0 1px ${palette.border}` : undefined,
                           }}
                         >
-                          <div className="text-xs font-semibold truncate" style={{ color }}>
+                          <div className="text-xs font-semibold truncate" style={{ color: palette.cardTitle }}>
                             {lesson.subject?.name || 'Cours'}
                           </div>
                           {height > 8 && (
-                            <div className="text-xs text-gray-500 truncate">
-                              {lesson.classroom && `Salle ${lesson.classroom}`}
+                            <div className="text-xs truncate" style={{ color: palette.cardSecondary }}>
+                              {classLabel ? `Classe ${classLabel}` : null}
+                              {classLabel && lesson.classroom ? ' · ' : null}
+                              {lesson.classroom ? `Salle ${lesson.classroom}` : null}
                             </div>
                           )}
                           {lesson.is_cancelled && (
-                            <div className="text-xs text-red-500 font-medium">Annulé</div>
+                            <div className="mt-0.5 inline-block rounded bg-red-100 px-1.5 py-0.5 text-xs font-semibold text-red-700">
+                              Annulé
+                            </div>
                           )}
                         </button>
                       );
@@ -187,15 +212,15 @@ const TimetablePage: React.FC = () => {
             <div
               className="p-4 rounded-xl"
               style={{
-                backgroundColor: (selectedLesson.background_color || '#4a90d9') + '22',
-                borderLeft: `4px solid ${selectedLesson.background_color || '#4a90d9'}`,
+                backgroundColor: selectedPalette?.detailBackground,
+                borderLeft: `4px solid ${selectedPalette?.border}`,
               }}
             >
-              <div className="text-lg font-bold text-gray-900">
+              <div className="text-lg font-bold" style={{ color: selectedPalette?.detailTitle }}>
                 {selectedLesson.subject?.name || 'Cours'}
               </div>
               {selectedLesson.status && (
-                <div className="text-sm text-gray-600 mt-1">{selectedLesson.status}</div>
+                <div className="text-sm mt-1" style={{ color: selectedPalette?.detailSecondary }}>{selectedLesson.status}</div>
               )}
               {selectedLesson.is_cancelled && (
                 <div className="mt-2 text-sm font-semibold text-red-600 bg-red-50 px-3 py-1 rounded-full inline-block">
@@ -221,9 +246,9 @@ const TimetablePage: React.FC = () => {
                   {selectedLesson.teacher_name}
                 </DetailRow>
               )}
-              {selectedLesson.group_name && (
-                <DetailRow icon={<User className="w-4 h-4 text-gray-400" />} label="Groupe">
-                  {selectedLesson.group_name}
+              {getLessonClassLabel(selectedLesson) && (
+                <DetailRow icon={<User className="w-4 h-4 text-gray-400" />} label="Classe / Groupe">
+                  {getLessonClassLabel(selectedLesson)}
                 </DetailRow>
               )}
             </div>

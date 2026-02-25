@@ -1,5 +1,5 @@
 #!/bin/bash
-# Post-installation script for pronote-desktop v1.7.5 (offline)
+# Post-installation script for pronote-desktop v1.7.8 (offline)
 # Installation 100% hors-ligne — aucun appel réseau effectué
 # Compatible Ubuntu 22.04 (Python 3.10/3.11) et Ubuntu 24.04 (Python 3.12+)
 set -e
@@ -12,7 +12,7 @@ CONFIG_DIR="/etc/pronote-desktop"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 
 echo "============================================"
-echo " Pronote Desktop v1.7.5 — Installation"
+echo " Pronote Desktop v1.7.8 — Installation"
 echo "============================================"
 
 # --- 1. Icônes et bureau ---
@@ -26,7 +26,7 @@ mkdir -p "$CONFIG_DIR"
 if [ ! -f "$CONFIG_FILE" ]; then
     cat > "$CONFIG_FILE" << 'CONFIG'
 {
-  "version": "1.7.5",
+  "version": "1.7.8",
   "theme": "light",
   "check_updates": true,
   "api_port": 5174,
@@ -143,11 +143,22 @@ else
     echo "  Aucun service systemd installé: démarrage backend via le launcher utilisateur."
 fi
 
-# --- 4b. Wrapper de lancement Electron robuste ---
-# Certaines machines plantent au démarrage avec le binaire direct
-# (/opt/Pronote Desktop/pronote-desktop) à cause du sandbox Chromium
-# et/ou du rendu GPU. On force un wrapper stable.
+# --- 4b. Runtime Electron sans espace + wrapper robuste ---
+# Ubuntu 24 + AppArmor peut casser le lancement Chromium quand le binaire
+# contient un espace dans son chemin (ex: /opt/Pronote Desktop/...).
+# On recopie le runtime vers /opt/pronote-desktop (sans espace).
 if [ -x "/opt/Pronote Desktop/pronote-desktop" ]; then
+    rm -rf /opt/pronote-desktop 2>/dev/null || true
+    mkdir -p /opt/pronote-desktop
+    cp -a "/opt/Pronote Desktop"/. /opt/pronote-desktop/ 2>/dev/null || true
+
+    if [ -f "/opt/pronote-desktop/chrome-sandbox" ]; then
+        chown root:root "/opt/pronote-desktop/chrome-sandbox" 2>/dev/null || true
+        chmod 4755 "/opt/pronote-desktop/chrome-sandbox" 2>/dev/null || true
+    fi
+
+    mkdir -p /usr/lib/pronote-desktop
+    ln -sf "/opt/pronote-desktop/pronote-desktop" /usr/lib/pronote-desktop/pronote-desktop-bin
     cat > /usr/bin/pronote-desktop << 'LAUNCHER'
 #!/bin/bash
 set -u
@@ -159,7 +170,12 @@ if [ -f "/etc/pronote-desktop/config.json" ]; then
 fi
 
 PY_BIN="/usr/lib/pronote-desktop/python-env/bin/python3"
-BACKEND_SCRIPT="/opt/Pronote Desktop/resources/pronote_api.py"
+BACKEND_SCRIPT="/opt/pronote-desktop/resources/pronote_api.py"
+if [ ! -f "$BACKEND_SCRIPT" ]; then
+  BACKEND_SCRIPT="/opt/Pronote Desktop/resources/pronote_api.py"
+fi
+BIN="/usr/lib/pronote-desktop/pronote-desktop-bin"
+SANDBOX_BIN="/opt/pronote-desktop/chrome-sandbox"
 
 health_ok() {
   python3 - "$API_PORT" << 'PY' >/dev/null 2>&1
@@ -187,7 +203,11 @@ if ! health_ok; then
   fi
 fi
 
-exec "/opt/Pronote Desktop/pronote-desktop" --no-sandbox --disable-gpu --ozone-platform=x11 "$@"
+if [ -x "$SANDBOX_BIN" ]; then
+  export CHROME_DEVEL_SANDBOX="$SANDBOX_BIN"
+fi
+
+exec "$BIN" --disable-gpu --ozone-platform=x11 --enable-logging --log-file=/tmp/pronote-electron.log --v=1 "$@"
 LAUNCHER
     chmod 755 /usr/bin/pronote-desktop
 fi
@@ -205,7 +225,7 @@ fi
 
 echo ""
 echo "============================================"
-echo " Pronote Desktop v1.7.5 installé !"
+echo " Pronote Desktop v1.7.8 installé !"
 echo " Lancez l'application :"
 echo "   • Menu Applications > Éducation"
 echo "   • Commande : pronote-desktop"

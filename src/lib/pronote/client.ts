@@ -86,14 +86,32 @@ export class PronoteClient {
       const data = resp.data;
       if (!Array.isArray(data)) return this.getFallbackLessons();
       return data.map((l: Record<string, unknown>) => ({
+        ...(Array.isArray(l.teacher_names)
+          ? {
+              teacher_names: (l.teacher_names as unknown[])
+                .map((t) => String(t))
+                .filter((t) => t.length > 0),
+            }
+          : { teacher_names: [] }),
+        ...(Array.isArray(l.classrooms)
+          ? {
+              classrooms: (l.classrooms as unknown[])
+                .map((c) => String(c))
+                .filter((c) => c.length > 0),
+            }
+          : { classrooms: [] }),
         id: String(l.id || ''),
         subject: l.subject ? {
           id: String((l.subject as Record<string, unknown>).id || ''),
           name: String((l.subject as Record<string, unknown>).name || 'Cours'),
           groups: Boolean((l.subject as Record<string, unknown>).groups),
         } : null,
-        teacher_name: l.teacher_name ? String(l.teacher_name) : null,
-        classroom: l.classroom ? String(l.classroom) : null,
+        teacher_name: l.teacher_name
+          ? String(l.teacher_name)
+          : (Array.isArray(l.teacher_names) && l.teacher_names.length > 0 ? String(l.teacher_names[0]) : null),
+        classroom: l.classroom
+          ? String(l.classroom)
+          : (Array.isArray(l.classrooms) && l.classrooms.length > 0 ? String(l.classrooms[0]) : null),
         start: parseDate(String(l.start || '')),
         end: parseDate(String(l.end || '')),
         is_cancelled: Boolean(l.is_cancelled),
@@ -102,7 +120,12 @@ export class PronoteClient {
         is_exempted: Boolean(l.is_exempted),
         background_color: l.background_color ? String(l.background_color) : '#4a90d9',
         status: l.status ? String(l.status) : null,
-        group_name: l.group_name ? String(l.group_name) : null,
+        group_name: l.group_name
+          ? String(l.group_name)
+          : (Array.isArray(l.group_names) && l.group_names.length > 0 ? String(l.group_names[0]) : null),
+        group_names: Array.isArray(l.group_names)
+          ? (l.group_names as unknown[]).map((g) => String(g)).filter((g) => g.length > 0)
+          : [],
         memo: l.memo ? String(l.memo) : null,
       }));
     } catch (error) {
@@ -121,7 +144,7 @@ export class PronoteClient {
       start.setHours(startH, 0, 0, 0);
       const end = new Date(start);
       end.setHours(endH, 0, 0, 0);
-      return { id: `${dayOffset}-${startH}`, subject: { id: subject, name: subject, groups: false }, teacher_name: 'M. PROFESSEUR Maxime', classroom: room, start, end, is_cancelled: false, is_outing: false, is_detention: false, is_exempted: false, background_color: color, status: null, group_name: null, memo: null };
+      return { id: `${dayOffset}-${startH}`, subject: { id: subject, name: subject, groups: false }, teacher_name: 'M. PROFESSEUR Maxime', teacher_names: ['M. PROFESSEUR Maxime'], classroom: room, classrooms: [room], start, end, is_cancelled: false, is_outing: false, is_detention: false, is_exempted: false, background_color: color, status: null, group_name: '5A', group_names: ['5A'], memo: null };
     };
     return [
       makeLesson(0, 8, 9, 'MATHÉMATIQUES', '207', '#4a90d9'),

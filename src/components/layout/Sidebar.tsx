@@ -340,6 +340,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                   <span className="w-2 h-2 bg-green-400 rounded-full inline-block"></span>
                   {clientInfo.establishment}
                 </div>
+                {clientInfo.class_name && (
+                  <div className="text-blue-200 text-xs truncate mt-0.5">
+                    Classe: {clientInfo.class_name}
+                  </div>
+                )}
               </div>
             </div>
           </div>

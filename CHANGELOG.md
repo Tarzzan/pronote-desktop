@@ -5,6 +5,33 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.7.8] — 2026-02-25
+
+### Corrigé
+- **Classes/groupes invisibles dans les cours** : affichage explicite de la classe/groupe dans l’Emploi du temps et dans les cartes de cours du tableau de bord.
+- **Mapping incomplet des cours** : ajout des fallbacks `group_names`, `teacher_names` et `classrooms` entre backend Python et client TypeScript pour éviter les pertes d’information selon la forme des données Pronote.
+- **Infos profil incomplètes** : affichage de `class_name` utilisateur dans la sidebar et la barre supérieure quand la donnée est disponible.
+- **Cohérence version API runtime** : correction du message de démarrage backend pour refléter la version applicative courante.
+- **Accessibilité visuelle de l’emploi du temps** : ajout d’une palette automatique (texte/fond/bordure) pour garantir le contraste des cartes de cours, y compris pour les couleurs problématiques bleu/vert, avec application cohérente dans la grille et le panneau détail.
+- **Instabilité de lancement Linux packagé** : durcissement du post-install avec runtime Electron sans espace (`/opt/pronote-desktop`), réutilisation du sandbox Chromium (`CHROME_DEVEL_SANDBOX`) et wrapper de lancement robuste sans `--no-sandbox`.
+
+### Ajouté
+- **Tests de non-régression contraste** : utilitaire réutilisable de contraste (`getReadableTextColor`) accompagné d’un test automatisé (`pnpm test:contrast`) sur les cas visuels critiques.
+- **Smoke test déploiement renforcé** : validation de stabilité sur 3 redémarrages consécutifs avec maintien du process UI et vérification santé API + login démo.
+
+## [1.7.7] — 2026-02-25
+
+### Corrigé
+- **Fermeture immédiate fenêtre (même avant connexion)** : désactivation explicite de l’accélération matérielle côté Electron Linux packagé (`app.disableHardwareAcceleration()`).
+- **Arrêt renderer non fatal mal géré** : récupération automatique appliquée sur tous les `render-process-gone` (y compris `clean-exit`) pour éviter la fermeture complète de l’application.
+- **Échec de chargement renderer** : ajout d’un retry automatique après `did-fail-load` pour améliorer la résilience au démarrage.
+
+## [1.7.6] — 2026-02-25
+
+### Corrigé
+- **Fermeture de l'application au clic sur "Connecter"** : durcissement du process principal Electron avec récupération automatique si le renderer tombe (`render-process-gone`) et tentative de reload en cas de renderer non réactif.
+- **Diagnostic crash utilisateur** : activation des logs Electron packagés vers `/tmp/pronote-electron.log` pour faciliter l’analyse sans intervention technique.
+
 ## [1.7.5] — 2026-02-25
 
 ### Corrigé

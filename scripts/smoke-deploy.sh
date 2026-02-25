@@ -7,18 +7,49 @@ if [[ -z "${DEB_PATH}" || ! -f "${DEB_PATH}" ]]; then
   exit 1
 fi
 
-echo "[1/6] Install package"
+echo "[1/8] Install package"
 sudo -n dpkg -i "${DEB_PATH}"
 
-echo "[2/6] Stop previous local processes"
+echo "[2/8] Stop previous local processes"
 pkill -f "/opt/Pronote Desktop/pronote-desktop" || true
+pkill -f "/opt/pronote-desktop/pronote-desktop" || true
+pkill -f "/usr/lib/pronote-desktop/pronote-desktop-bin" || true
 pkill -f "python3 .*pronote_api.py" || true
 
-echo "[3/6] Launch app once"
-nohup pronote-desktop >/tmp/pronote-smoke-ui.log 2>&1 &
-sleep 3
+launch_and_check() {
+  local run_id="$1"
+  local hold_seconds="$2"
+  local display="${DISPLAY:-:0}"
+  local xauth="${XAUTHORITY:-}"
 
-echo "[4/6] Validate backend health"
+  if [[ -z "${xauth}" ]]; then
+    xauth="$(ls -1 /run/user/$(id -u)/.mutter-Xwaylandauth.* 2>/dev/null | head -n1 || true)"
+  fi
+
+  pkill -f "/opt/Pronote Desktop/pronote-desktop" || true
+  pkill -f "/opt/pronote-desktop/pronote-desktop" || true
+  pkill -f "/usr/lib/pronote-desktop/pronote-desktop-bin" || true
+  DISPLAY="${display}" XAUTHORITY="${xauth}" nohup pronote-desktop >/tmp/pronote-smoke-ui-${run_id}.log 2>&1 &
+  sleep 3
+
+  local ui_pid
+  ui_pid="$(pgrep -f '/opt/pronote-desktop/pronote-desktop|/opt/Pronote Desktop/pronote-desktop|/usr/lib/pronote-desktop/pronote-desktop-bin' | head -n1 || true)"
+  if [[ -z "${ui_pid}" ]]; then
+    echo "UI not running after launch (run=${run_id})"
+    exit 1
+  fi
+
+  sleep "${hold_seconds}"
+  if ! kill -0 "${ui_pid}" 2>/dev/null; then
+    echo "UI crashed before ${hold_seconds}s (run=${run_id})"
+    exit 1
+  fi
+}
+
+echo "[3/8] Launch app (run 1) and keep alive 40s"
+launch_and_check "run1" 40
+
+echo "[4/8] Validate backend health"
 python3 - << 'PY'
 import json, urllib.request, sys
 url = "http://127.0.0.1:5174/api/health"
@@ -32,7 +63,7 @@ except Exception as e:
     raise
 PY
 
-echo "[5/6] Validate demo login"
+echo "[5/8] Validate demo login"
 python3 - << 'PY'
 import json, urllib.request
 payload = {
@@ -51,5 +82,11 @@ assert data.get("success") is True, data
 print("demo_login=ok")
 PY
 
-echo "[6/6] Smoke test passed"
-echo "UI log: /tmp/pronote-smoke-ui.log"
+echo "[6/8] Restart run 2 and keep alive 10s"
+launch_and_check "run2" 10
+
+echo "[7/8] Restart run 3 and keep alive 10s"
+launch_and_check "run3" 10
+
+echo "[8/8] Smoke test passed"
+echo "UI logs: /tmp/pronote-smoke-ui-run*.log"

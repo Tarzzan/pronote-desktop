@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Pronote Desktop — Serveur API Python (proxy pronotepy)
-Version: 1.7.5
+Version: 1.7.8
 Ce serveur Flask fait le pont entre l'interface React et l'API Pronote
 via la bibliothèque pronotepy.
 """
@@ -52,6 +52,16 @@ def client_to_dict(client: pronotepy.Client) -> dict:
     }
 
 def lesson_to_dict(l: pronotepy.Lesson) -> dict:
+    group_names = []
+    if hasattr(l, 'group_names') and isinstance(l.group_names, list):
+        group_names = [str(g) for g in l.group_names if g]
+    teacher_names = []
+    if hasattr(l, 'teacher_names') and isinstance(l.teacher_names, list):
+        teacher_names = [str(t) for t in l.teacher_names if t]
+    classrooms = []
+    if hasattr(l, 'classrooms') and isinstance(l.classrooms, list):
+        classrooms = [str(c) for c in l.classrooms if c]
+
     return {
         "id": str(l.id) if hasattr(l, 'id') else str(id(l)),
         "subject": {"id": l.subject.id if l.subject else "", "name": l.subject.name if l.subject else "Cours", "groups": l.subject.groups if l.subject else False} if l.subject else None,
@@ -66,6 +76,9 @@ def lesson_to_dict(l: pronotepy.Lesson) -> dict:
         "background_color": l.background_color if hasattr(l, 'background_color') else None,
         "status": l.status if hasattr(l, 'status') else None,
         "group_name": l.group_name if hasattr(l, 'group_name') else None,
+        "group_names": group_names,
+        "teacher_names": teacher_names,
+        "classrooms": classrooms,
         "memo": l.memo if hasattr(l, 'memo') else None,
     }
 
@@ -173,7 +186,7 @@ def spa_fallback(path):
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    return jsonify({"status": "ok", "version": "1.7.5"})
+    return jsonify({"status": "ok", "version": "1.7.8"})
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -410,5 +423,5 @@ if __name__ == '__main__':
     # Valeur par défaut : 127.0.0.1 (local uniquement)
     # Pour accès LAN/WAN : définir "api_host": "0.0.0.0"
     host = CONFIG.get('api_host', '127.0.0.1')
-    print(f"Pronote Desktop API v1.7.0 — http://{host}:{port}")
+    print(f"Pronote Desktop API v1.7.8 — http://{host}:{port}")
     app.run(host=host, port=port, debug=False)
