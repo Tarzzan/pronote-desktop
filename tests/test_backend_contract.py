@@ -228,6 +228,148 @@ class BackendRoutesContractTests(unittest.TestCase):
         fallback = self.api.get_selected_period("missing")
         self.assertEqual(fallback.id, "p1")
 
+    def test_grades_requires_authentication(self):
+        self.api._adapter = DummyAdapter(logged_in=False)
+        response = self.client.get("/api/grades")
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.get_json(), {"error": "Non connecté"})
+
+    def test_period_endpoints_require_authentication(self):
+        self.api._adapter = DummyAdapter(logged_in=False)
+        for endpoint in ("/api/averages", "/api/absences", "/api/delays"):
+            response = self.client.get(endpoint)
+            self.assertEqual(response.status_code, 401)
+            self.assertEqual(response.get_json(), {"error": "Non connecté"})
+
+    def test_grades_serialization_contract(self):
+        subject = types.SimpleNamespace(id="mat-001", name="Mathématiques")
+        grade = types.SimpleNamespace(
+            id="g1",
+            grade="15",
+            out_of="20",
+            default_out_of="20",
+            date=dt.date(2026, 2, 3),
+            subject=subject,
+            average="13.2",
+            max="19",
+            min="6",
+            coefficient="2",
+            comment="Très bon travail",
+            is_bonus=False,
+            is_optionnal=False,
+            is_out_of_20=True,
+        )
+        period = types.SimpleNamespace(
+            id="p1",
+            name="Trimestre 1",
+            start=dt.date(2026, 1, 1),
+            end=dt.date(2026, 3, 31),
+            grades=[grade],
+            averages=[],
+            absences=[],
+            delays=[],
+        )
+        self.api._adapter = DummyAdapter(logged_in=True, periods=[period])
+
+        response = self.client.get("/api/grades?period_id=p1")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]["id"], "g1")
+        self.assertEqual(body[0]["period"]["id"], "p1")
+        self.assertEqual(body[0]["subject"]["name"], "Mathématiques")
+
+    def test_averages_serialization_contract(self):
+        subject = types.SimpleNamespace(id="mat-001", name="Mathématiques")
+        average = types.SimpleNamespace(
+            student="15.3",
+            class_average="12.4",
+            max="18.9",
+            min="7.2",
+            out_of="20",
+            default_out_of="20",
+            subject=subject,
+            background_color="#2f7dea",
+        )
+        period = types.SimpleNamespace(
+            id="p1",
+            name="Trimestre 1",
+            start=dt.date(2026, 1, 1),
+            end=dt.date(2026, 3, 31),
+            grades=[],
+            averages=[average],
+            absences=[],
+            delays=[],
+        )
+        self.api._adapter = DummyAdapter(logged_in=True, periods=[period])
+
+        response = self.client.get("/api/averages?period_id=p1")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]["student"], "15.3")
+        self.assertEqual(body[0]["subject"]["name"], "Mathématiques")
+        self.assertEqual(body[0]["background_color"], "#2f7dea")
+
+    def test_absences_serialization_contract(self):
+        absence = types.SimpleNamespace(
+            id="a1",
+            from_date=dt.date(2026, 2, 10),
+            to_date=dt.date(2026, 2, 10),
+            justified=True,
+            hours="2",
+            days=0,
+            reasons=["Médical"],
+        )
+        period = types.SimpleNamespace(
+            id="p1",
+            name="Trimestre 1",
+            start=dt.date(2026, 1, 1),
+            end=dt.date(2026, 3, 31),
+            grades=[],
+            averages=[],
+            absences=[absence],
+            delays=[],
+        )
+        self.api._adapter = DummyAdapter(logged_in=True, periods=[period])
+
+        response = self.client.get("/api/absences?period_id=p1")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]["id"], "a1")
+        self.assertEqual(body[0]["justified"], True)
+        self.assertEqual(body[0]["reasons"], ["Médical"])
+
+    def test_delays_serialization_contract(self):
+        delay = types.SimpleNamespace(
+            id="d1",
+            date=dt.date(2026, 2, 11),
+            minutes=7,
+            justified=False,
+            justification="",
+            reasons=["Transport"],
+        )
+        period = types.SimpleNamespace(
+            id="p1",
+            name="Trimestre 1",
+            start=dt.date(2026, 1, 1),
+            end=dt.date(2026, 3, 31),
+            grades=[],
+            averages=[],
+            absences=[],
+            delays=[delay],
+        )
+        self.api._adapter = DummyAdapter(logged_in=True, periods=[period])
+
+        response = self.client.get("/api/delays?period_id=p1")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]["id"], "d1")
+        self.assertEqual(body[0]["minutes"], 7)
+        self.assertEqual(body[0]["reasons"], ["Transport"])
+
 
 if __name__ == "__main__":
     unittest.main()
