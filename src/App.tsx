@@ -13,6 +13,7 @@ const HomeworkPage = lazy(() => import("./pages/HomeworkPage"));
 const MessagingPage = lazy(() => import("./pages/MessagingPage"));
 const AttendancePage = lazy(() => import("./pages/AttendancePage"));
 const InformationsPage = lazy(() => import("./pages/InformationsPage"));
+const MenusPage = lazy(() => import("./pages/MenusPage"));
 const PlaceholderPage = lazy(() => import("./pages/PlaceholderPage"));
 const BulletinsPage = lazy(() => import("./pages/BulletinsPage"));
 const CompetencesPage = lazy(() => import("./pages/CompetencesPage"));
@@ -193,7 +194,8 @@ const App: React.FC = () => {
               <Route path="attendance/call" element={<AttendanceCallPage />} />
               <Route path="attendance/sanctions" element={<PlaceholderPage />} />
               <Route path="informations" element={<InformationsPage />} />
-              <Route path="services" element={<PlaceholderPage />} />
+              <Route path="services" element={<MenusPage />} />
+              <Route path="menus" element={<MenusPage />} />
               <Route path="students" element={<PlaceholderPage />} />
               <Route path="trombinoscope" element={<PlaceholderPage />} />
               <Route path="teachers" element={<PlaceholderPage />} />

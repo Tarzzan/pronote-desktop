@@ -61,6 +61,12 @@ const IconClock = () => (
     <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
   </svg>
 );
+const IconMeal = () => (
+  <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="#22c55e" strokeWidth="2">
+    <path d="M8 2v9" /><path d="M5 2v9" /><path d="M6.5 11v11" />
+    <path d="M14 2v8c0 1.1.9 2 2 2h1v10" />
+  </svg>
+);
 const IconBell = () => (
   <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="#facc15" strokeWidth="2">
     <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 01-3.46 0" />
@@ -174,6 +180,7 @@ const menuItems: MenuItem[] = [
     children: [
       { id: 'appel', label: 'Appel et suivi', icon: <IconUsers />, path: '/attendance/call' },
       { id: 'absences', label: 'Absences et retards', icon: <IconClock />, path: '/attendance' },
+      { id: 'menus', label: 'Menus de cantine', icon: <IconMeal />, path: '/services' },
       { id: 'punitions', label: 'Punitions et sanctions', icon: <IconFile />, path: '/attendance/sanctions' },
     ],
   },

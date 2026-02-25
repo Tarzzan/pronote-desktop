@@ -72,13 +72,13 @@ const HomeworkEditPage: React.FC = () => {
   const isValid = entries.every(e => e.description.trim().length > 0 && e.dueDate);
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2">
           <BookOpen className="w-6 h-6 text-blue-600" />
           Saisie des devoirs
         </h1>
-        <p className="text-sm text-gray-500">Ajoutez des devoirs pour vos classes</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Ajoutez des devoirs pour vos classes</p>
       </div>
 
       <div className="space-y-4 mb-6">
@@ -88,11 +88,11 @@ const HomeworkEditPage: React.FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden"
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden"
           >
             {/* En-tête de la carte */}
-            <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100">
-              <span className="text-sm font-semibold text-gray-700">Devoir {idx + 1}</span>
+            <div className="flex items-center justify-between px-4 sm:px-5 py-3 bg-gray-50 dark:bg-gray-800/70 border-b border-gray-100 dark:border-gray-700">
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Devoir {idx + 1}</span>
               {entries.length > 1 && (
                 <button onClick={() => removeEntry(entry.id)} className="text-gray-400 hover:text-red-500 transition-colors">
                   <Trash2 className="w-4 h-4" />
@@ -100,27 +100,27 @@ const HomeworkEditPage: React.FC = () => {
               )}
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="p-4 sm:p-5 space-y-4">
               {/* Classe + Matière */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5 flex items-center gap-1">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 flex items-center gap-1">
                     <Users className="w-3.5 h-3.5" /> Classe
                   </label>
                   <select
                     value={entry.className}
                     onChange={e => updateEntry(entry.id, 'className', e.target.value)}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full min-w-0 px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   >
                     {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Matière</label>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Matière</label>
                   <select
                     value={entry.subject}
                     onChange={e => updateEntry(entry.id, 'subject', e.target.value)}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full min-w-0 px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   >
                     {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
@@ -128,33 +128,33 @@ const HomeworkEditPage: React.FC = () => {
               </div>
 
               {/* Type + Date d'échéance */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5">Type</label>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Type</label>
                   <select
                     value={entry.type}
                     onChange={e => updateEntry(entry.id, 'type', e.target.value)}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full min-w-0 px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   >
                     {HOMEWORK_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1.5 flex items-center gap-1">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" /> Pour le
                   </label>
                   <input
                     type="date"
                     value={entry.dueDate}
                     onChange={e => updateEntry(entry.id, 'dueDate', e.target.value)}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="w-full min-w-0 px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   />
                 </div>
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1.5 flex items-center gap-1">
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 flex items-center gap-1">
                   <FileText className="w-3.5 h-3.5" /> Description du devoir
                 </label>
                 <textarea
@@ -162,13 +162,13 @@ const HomeworkEditPage: React.FC = () => {
                   onChange={e => updateEntry(entry.id, 'description', e.target.value)}
                   placeholder="Ex. : Faire les exercices 3, 4 et 5 page 47..."
                   rows={3}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
+                  className="w-full min-w-0 px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-y"
                 />
               </div>
 
               {/* Durée estimée */}
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1.5">
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Durée estimée : <span className="text-blue-600 font-semibold">{entry.estimatedMinutes} min</span>
                 </label>
                 <input
@@ -180,7 +180,7 @@ const HomeworkEditPage: React.FC = () => {
                   onChange={e => updateEntry(entry.id, 'estimatedMinutes', parseInt(e.target.value))}
                   className="w-full accent-blue-600"
                 />
-                <div className="flex justify-between text-xs text-gray-400 mt-1">
+                <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-1">
                   <span>5 min</span><span>30 min</span><span>1h</span><span>2h</span>
                 </div>
               </div>
@@ -192,7 +192,7 @@ const HomeworkEditPage: React.FC = () => {
       {/* Ajouter un devoir */}
       <button
         onClick={addEntry}
-        className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-200 rounded-xl text-sm text-gray-500 hover:border-blue-300 hover:text-blue-600 transition-colors mb-6"
+        className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-500 dark:text-gray-400 hover:border-blue-300 hover:text-blue-600 transition-colors mb-6"
       >
         <Plus className="w-4 h-4" /> Ajouter un autre devoir
       </button>
@@ -202,7 +202,7 @@ const HomeworkEditPage: React.FC = () => {
         <button
           onClick={handleSave}
           disabled={isSaving || !isValid}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all shadow-sm ${
+          className={`w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all shadow-sm ${
             saved
               ? 'bg-green-100 text-green-700 border border-green-200'
               : 'bg-blue-700 hover:bg-blue-800 text-white'

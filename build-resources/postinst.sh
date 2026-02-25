@@ -207,7 +207,46 @@ if [ -x "$SANDBOX_BIN" ]; then
   export CHROME_DEVEL_SANDBOX="$SANDBOX_BIN"
 fi
 
-exec "$BIN" --disable-gpu --ozone-platform=x11 --enable-logging --log-file=/tmp/pronote-electron.log --v=1 "$@"
+COMMON_FLAGS=(--disable-gpu --ozone-platform=x11 --enable-logging --log-file=/tmp/pronote-electron.log --v=1)
+NO_SANDBOX_FLAGS=(--no-sandbox --disable-setuid-sandbox)
+SANDBOX_MODE="${PRONOTE_SANDBOX_MODE:-auto}" # auto | strict | disabled
+
+launch_normal() {
+  "$BIN" "${COMMON_FLAGS[@]}" "$@"
+}
+
+launch_no_sandbox() {
+  "$BIN" "${NO_SANDBOX_FLAGS[@]}" "${COMMON_FLAGS[@]}" "$@"
+}
+
+if [ "$SANDBOX_MODE" = "disabled" ]; then
+  exec "$BIN" "${NO_SANDBOX_FLAGS[@]}" "${COMMON_FLAGS[@]}" "$@"
+fi
+
+if [ "$SANDBOX_MODE" = "strict" ]; then
+  exec "$BIN" "${COMMON_FLAGS[@]}" "$@"
+fi
+
+# Mode auto:
+# 1) tentative standard avec sandbox
+# 2) si le process meurt en quelques secondes ET qu'un motif sandbox est détecté
+#    dans les logs, relance automatique sans sandbox
+: > /tmp/pronote-electron.log
+launch_normal "$@" &
+APP_PID=$!
+sleep 6
+
+if kill -0 "$APP_PID" 2>/dev/null; then
+  wait "$APP_PID"
+  exit $?
+fi
+
+if tail -n 120 /tmp/pronote-electron.log 2>/dev/null | grep -Eiq \
+  "sandbox_host_linux.cc|setuid_sandbox_host.cc|zygote_host_impl_linux.cc|Operation not permitted|SUID sandbox helper"; then
+  exec "$BIN" "${NO_SANDBOX_FLAGS[@]}" "${COMMON_FLAGS[@]}" "$@"
+fi
+
+exit 1
 LAUNCHER
     chmod 755 /usr/bin/pronote-desktop
 fi
