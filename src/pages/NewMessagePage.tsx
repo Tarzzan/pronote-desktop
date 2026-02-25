@@ -1,25 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, X, Loader2, CheckCircle, Users, MessageSquare } from 'lucide-react';
-
-interface Recipient {
-  id: string;
-  name: string;
-  role: 'teacher' | 'parent' | 'admin';
-}
-
-// Destinataires de démo
-const DEMO_RECIPIENTS: Recipient[] = [
-  { id: 'r1', name: 'Direction', role: 'admin' },
-  { id: 'r2', name: 'M. Dupont (CPE)', role: 'admin' },
-  { id: 'r3', name: 'Mme Martin (Français)', role: 'teacher' },
-  { id: 'r4', name: 'M. Bernard (Histoire)', role: 'teacher' },
-  { id: 'r5', name: 'Mme Petit (Anglais)', role: 'teacher' },
-  { id: 'r6', name: 'Parents de Dupont Alice', role: 'parent' },
-  { id: 'r7', name: 'Parents de Martin Baptiste', role: 'parent' },
-];
+import { getClient } from '../lib/pronote/client';
+import type { Recipient } from '../types/pronote';
 
 const NewMessagePage: React.FC = () => {
+  const [availableRecipients, setAvailableRecipients] = useState<Recipient[]>([]);
   const [selectedRecipients, setSelectedRecipients] = useState<Recipient[]>([]);
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
@@ -27,10 +13,26 @@ const NewMessagePage: React.FC = () => {
   const [showRecipientList, setShowRecipientList] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
-  const filteredRecipients = DEMO_RECIPIENTS.filter(r =>
-    r.name.toLowerCase().includes(recipientSearch.toLowerCase()) &&
-    !selectedRecipients.find(s => s.id === r.id)
+  useEffect(() => {
+    const loadRecipients = async () => {
+      const client = getClient();
+      if (!client) return;
+      const recipients = await client.getRecipients();
+      setAvailableRecipients(recipients);
+    };
+    void loadRecipients();
+  }, []);
+
+  const filteredRecipients = useMemo(
+    () =>
+      availableRecipients.filter(
+        (r) =>
+          r.name.toLowerCase().includes(recipientSearch.toLowerCase()) &&
+          !selectedRecipients.find((s) => s.id === r.id)
+      ),
+    [availableRecipients, recipientSearch, selectedRecipients]
   );
 
   const addRecipient = (r: Recipient) => {
@@ -45,19 +47,35 @@ const NewMessagePage: React.FC = () => {
 
   const handleSend = async () => {
     if (!subject.trim() || !body.trim() || selectedRecipients.length === 0) return;
+    const client = getClient();
+    if (!client) return;
+
+    setSendError(null);
     setIsSending(true);
-    await new Promise(r => setTimeout(r, 1000));
+    const ok = await client.createDiscussion(
+      selectedRecipients.map((r) => r.id),
+      subject.trim(),
+      body.trim()
+    );
     setIsSending(false);
-    setSent(true);
+    if (ok) {
+      setSent(true);
+      return;
+    }
+    setSendError("Échec de l'envoi. Vérifiez la connexion Pronote.");
   };
 
   const roleColors: Record<string, string> = {
     admin: 'bg-purple-100 text-purple-700',
     teacher: 'bg-blue-100 text-blue-700',
     parent: 'bg-green-100 text-green-700',
+    unknown: 'bg-gray-100 text-gray-700',
   };
   const roleLabels: Record<string, string> = {
-    admin: 'Admin', teacher: 'Enseignant', parent: 'Parent',
+    admin: 'Admin',
+    teacher: 'Enseignant',
+    parent: 'Parent',
+    unknown: 'Contact',
   };
 
   if (sent) {
@@ -125,8 +143,8 @@ const NewMessagePage: React.FC = () => {
                           <Users className="w-4 h-4 text-gray-400" />
                           <span className="text-sm text-gray-800">{r.name}</span>
                         </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${roleColors[r.role]}`}>
-                          {roleLabels[r.role]}
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${roleColors[r.kind] || roleColors.unknown}`}>
+                          {roleLabels[r.kind] || roleLabels.unknown}
                         </span>
                       </button>
                     ))}
@@ -147,8 +165,11 @@ const NewMessagePage: React.FC = () => {
               onChange={e => setSubject(e.target.value)}
               placeholder="Objet du message"
               className="flex-1 text-sm border-0 focus:outline-none text-gray-800 placeholder-gray-400"
-            />
-          </div>
+                />
+                {sendError && (
+                  <p className="text-xs text-red-600 mt-2">{sendError}</p>
+                )}
+              </div>
         </div>
 
         {/* Corps */}

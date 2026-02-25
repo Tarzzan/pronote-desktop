@@ -13,7 +13,7 @@ import os
 import subprocess
 import traceback
 from typing import Any, List, Optional, Tuple
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, Response, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 # --- Configuration ---
@@ -81,6 +81,36 @@ class PronoteBackendAdapter:
     def get_informations(self) -> list[Any]:
         raise NotImplementedError
 
+    def set_homework_done(self, homework_id: str, done: bool) -> bool:
+        raise NotImplementedError
+
+    def get_lesson_content(self, lesson_id: str, date_from: datetime.date, date_to: datetime.date) -> Any:
+        raise NotImplementedError
+
+    def get_recipients(self) -> list[Any]:
+        raise NotImplementedError
+
+    def create_discussion(self, recipient_ids: list[str], subject: str, content: str) -> Any:
+        raise NotImplementedError
+
+    def reply_discussion(self, discussion_id: str, content: str) -> bool:
+        raise NotImplementedError
+
+    def mark_discussion(self, discussion_id: str, mark_as: str) -> bool:
+        raise NotImplementedError
+
+    def delete_discussion(self, discussion_id: str) -> bool:
+        raise NotImplementedError
+
+    def mark_information_read(self, information_id: str) -> bool:
+        raise NotImplementedError
+
+    def get_menus(self, date_from: datetime.date, date_to: datetime.date) -> list[Any]:
+        raise NotImplementedError
+
+    def export_ical(self, date_from: Optional[datetime.date], date_to: Optional[datetime.date]) -> str:
+        raise NotImplementedError
+
 
 class PronotepySyncAdapter(PronoteBackendAdapter):
     """Implémentation actuelle basée sur pronotepy synchrone."""
@@ -122,6 +152,94 @@ class PronotepySyncAdapter(PronoteBackendAdapter):
     def get_informations(self) -> list[Any]:
         client = self.get_client()
         return list(client.information_and_surveys())
+
+    def _find_by_id(self, items: list[Any], item_id: str) -> Any:
+        return next((obj for obj in items if str(getattr(obj, "id", "")) == str(item_id)), None)
+
+    def set_homework_done(self, homework_id: str, done: bool) -> bool:
+        target_date = datetime.date.today()
+        homeworks = self.get_homework(target_date - datetime.timedelta(days=45), target_date + datetime.timedelta(days=90))
+        homework = self._find_by_id(homeworks, homework_id)
+        if not homework or not hasattr(homework, "set_done"):
+            return False
+        homework.set_done(bool(done))
+        return True
+
+    def get_lesson_content(self, lesson_id: str, date_from: datetime.date, date_to: datetime.date) -> Any:
+        lessons = self.get_lessons(date_from, date_to)
+        lesson = self._find_by_id(lessons, lesson_id)
+        if not lesson:
+            return None
+        if hasattr(lesson, "content"):
+            try:
+                return lesson.content
+            except Exception:
+                return None
+        return None
+
+    def get_recipients(self) -> list[Any]:
+        client = self.get_client()
+        if not hasattr(client, "get_recipients"):
+            return []
+        return list(client.get_recipients())
+
+    def create_discussion(self, recipient_ids: list[str], subject: str, content: str) -> Any:
+        client = self.get_client()
+        if not hasattr(client, "new_discussion"):
+            raise AdapterError("Création de discussion non supportée")
+        recipients = self.get_recipients()
+        selected = [r for r in recipients if str(getattr(r, "id", "")) in {str(i) for i in recipient_ids}]
+        if not selected:
+            raise AdapterError("Aucun destinataire valide")
+        return client.new_discussion(selected, subject, content)
+
+    def reply_discussion(self, discussion_id: str, content: str) -> bool:
+        discussion = self._find_by_id(self.get_discussions(), discussion_id)
+        if not discussion or not hasattr(discussion, "reply"):
+            return False
+        discussion.reply(content)
+        return True
+
+    def mark_discussion(self, discussion_id: str, mark_as: str) -> bool:
+        discussion = self._find_by_id(self.get_discussions(), discussion_id)
+        if not discussion or not hasattr(discussion, "mark_as"):
+            return False
+        discussion.mark_as(mark_as)
+        return True
+
+    def delete_discussion(self, discussion_id: str) -> bool:
+        discussion = self._find_by_id(self.get_discussions(), discussion_id)
+        if not discussion or not hasattr(discussion, "delete"):
+            return False
+        discussion.delete()
+        return True
+
+    def mark_information_read(self, information_id: str) -> bool:
+        info = self._find_by_id(self.get_informations(), information_id)
+        if not info or not hasattr(info, "mark_as_read"):
+            return False
+        info.mark_as_read()
+        return True
+
+    def get_menus(self, date_from: datetime.date, date_to: datetime.date) -> list[Any]:
+        client = self.get_client()
+        if not hasattr(client, "menus"):
+            return []
+        return list(client.menus(date_from, date_to))
+
+    def export_ical(self, date_from: Optional[datetime.date], date_to: Optional[datetime.date]) -> str:
+        client = self.get_client()
+        if not hasattr(client, "export_ical"):
+            raise AdapterError("Export iCal non supporté")
+        kwargs: dict[str, Any] = {}
+        if date_from is not None:
+            kwargs["date_from"] = date_from
+        if date_to is not None:
+            kwargs["date_to"] = date_to
+        payload = client.export_ical(**kwargs)
+        if isinstance(payload, bytes):
+            return payload.decode("utf-8", errors="replace")
+        return str(payload)
 
 
 class PronotepyRefonteAdapter(PronotepySyncAdapter):
@@ -328,6 +446,39 @@ def info_to_dict(i) -> dict:
     }
 
 
+def _normalize_value(value: Any) -> Any:
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if isinstance(value, (datetime.date, datetime.datetime)):
+        return value.isoformat()
+    if isinstance(value, (list, tuple)):
+        return [_normalize_value(v) for v in value]
+    if isinstance(value, dict):
+        return {str(k): _normalize_value(v) for k, v in value.items()}
+    if hasattr(value, "to_dict"):
+        try:
+            return _normalize_value(value.to_dict())
+        except Exception:
+            pass
+    return str(value)
+
+
+def recipient_to_dict(recipient: Any) -> dict:
+    identity = getattr(recipient, "identity", None)
+    return {
+        "id": str(getattr(recipient, "id", "")),
+        "name": str(identity.name) if identity and hasattr(identity, "name") else str(getattr(recipient, "name", "Destinataire")),
+        "kind": str(getattr(recipient, "kind", getattr(recipient, "type", "unknown"))),
+    }
+
+
+def menu_to_dict(menu: Any) -> dict:
+    payload = _normalize_value(menu)
+    if isinstance(payload, dict):
+        return payload
+    return {"value": payload}
+
+
 def get_selected_period(period_id: Optional[str]) -> Any:
     periods = _adapter.get_periods()
     if not periods:
@@ -405,6 +556,36 @@ def homework():
     except Exception as e:
         return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
 
+
+@app.route('/api/homework/<homework_id>/done', methods=['PATCH'])
+def homework_done(homework_id: str):
+    if not _adapter.is_logged_in():
+        return jsonify({"error": "Non connecté"}), 401
+    try:
+        payload = request.get_json() or {}
+        done = bool(payload.get('done', True))
+        updated = _adapter.set_homework_done(homework_id, done)
+        if not updated:
+            return jsonify({"updated": False, "error": "Devoir introuvable"}), 404
+        return jsonify({"updated": True, "id": homework_id, "done": done})
+    except Exception as e:
+        return jsonify({"updated": False, "error": str(e)}), 500
+
+
+@app.route('/api/lessons/<lesson_id>/content', methods=['GET'])
+def lesson_content(lesson_id: str):
+    if not _adapter.is_logged_in():
+        return jsonify({"error": "Non connecté"}), 401
+    try:
+        date_from_str = request.args.get('from')
+        date_to_str = request.args.get('to')
+        date_from = datetime.date.fromisoformat(date_from_str) if date_from_str else datetime.date.today() - datetime.timedelta(days=45)
+        date_to = datetime.date.fromisoformat(date_to_str) if date_to_str else datetime.date.today() + datetime.timedelta(days=45)
+        content = _adapter.get_lesson_content(lesson_id, date_from, date_to)
+        return jsonify({"id": lesson_id, "content": _normalize_value(content)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/periods', methods=['GET'])
 def periods():
     if not _adapter.is_logged_in():
@@ -460,6 +641,83 @@ def discussions():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route('/api/recipients', methods=['GET'])
+def recipients():
+    if not _adapter.is_logged_in():
+        return jsonify({"error": "Non connecté"}), 401
+    try:
+        recs = _adapter.get_recipients()
+        return jsonify([recipient_to_dict(r) for r in recs])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/discussions/new', methods=['POST'])
+def create_discussion():
+    if not _adapter.is_logged_in():
+        return jsonify({"error": "Non connecté"}), 401
+    try:
+        data = request.get_json() or {}
+        recipient_ids = data.get('recipient_ids') or []
+        subject = str(data.get('subject') or '').strip()
+        content = str(data.get('content') or '').strip()
+        if not isinstance(recipient_ids, list) or len(recipient_ids) == 0:
+            return jsonify({"created": False, "error": "recipient_ids requis"}), 400
+        if not subject or not content:
+            return jsonify({"created": False, "error": "subject et content requis"}), 400
+        discussion = _adapter.create_discussion([str(x) for x in recipient_ids], subject, content)
+        return jsonify({"created": True, "discussion": discussion_to_dict(discussion) if discussion is not None else None})
+    except Exception as e:
+        return jsonify({"created": False, "error": str(e)}), 500
+
+
+@app.route('/api/discussions/<discussion_id>/reply', methods=['POST'])
+def reply_discussion(discussion_id: str):
+    if not _adapter.is_logged_in():
+        return jsonify({"error": "Non connecté"}), 401
+    try:
+        data = request.get_json() or {}
+        content = str(data.get('content') or '').strip()
+        if not content:
+            return jsonify({"replied": False, "error": "content requis"}), 400
+        replied = _adapter.reply_discussion(discussion_id, content)
+        if not replied:
+            return jsonify({"replied": False, "error": "Discussion introuvable"}), 404
+        return jsonify({"replied": True, "id": discussion_id})
+    except Exception as e:
+        return jsonify({"replied": False, "error": str(e)}), 500
+
+
+@app.route('/api/discussions/<discussion_id>/status', methods=['PATCH'])
+def mark_discussion(discussion_id: str):
+    if not _adapter.is_logged_in():
+        return jsonify({"error": "Non connecté"}), 401
+    try:
+        data = request.get_json() or {}
+        mark_as = str(data.get('mark_as') or 'read').strip().lower()
+        if mark_as not in ('read', 'unread'):
+            return jsonify({"updated": False, "error": "mark_as doit valoir read ou unread"}), 400
+        updated = _adapter.mark_discussion(discussion_id, mark_as)
+        if not updated:
+            return jsonify({"updated": False, "error": "Discussion introuvable"}), 404
+        return jsonify({"updated": True, "id": discussion_id, "mark_as": mark_as})
+    except Exception as e:
+        return jsonify({"updated": False, "error": str(e)}), 500
+
+
+@app.route('/api/discussions/<discussion_id>', methods=['DELETE'])
+def delete_discussion(discussion_id: str):
+    if not _adapter.is_logged_in():
+        return jsonify({"error": "Non connecté"}), 401
+    try:
+        deleted = _adapter.delete_discussion(discussion_id)
+        if not deleted:
+            return jsonify({"deleted": False, "error": "Discussion introuvable"}), 404
+        return jsonify({"deleted": True, "id": discussion_id})
+    except Exception as e:
+        return jsonify({"deleted": False, "error": str(e)}), 500
+
 @app.route('/api/informations', methods=['GET'])
 def informations():
     if not _adapter.is_logged_in():
@@ -467,6 +725,53 @@ def informations():
     try:
         infos = _adapter.get_informations()
         return jsonify([info_to_dict(i) for i in infos])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/informations/<information_id>/read', methods=['PATCH'])
+def information_mark_read(information_id: str):
+    if not _adapter.is_logged_in():
+        return jsonify({"error": "Non connecté"}), 401
+    try:
+        updated = _adapter.mark_information_read(information_id)
+        if not updated:
+            return jsonify({"updated": False, "error": "Information introuvable"}), 404
+        return jsonify({"updated": True, "id": information_id})
+    except Exception as e:
+        return jsonify({"updated": False, "error": str(e)}), 500
+
+
+@app.route('/api/menus', methods=['GET'])
+def menus():
+    if not _adapter.is_logged_in():
+        return jsonify({"error": "Non connecté"}), 401
+    try:
+        date_from_str = request.args.get('from')
+        date_to_str = request.args.get('to')
+        date_from = datetime.date.fromisoformat(date_from_str) if date_from_str else datetime.date.today()
+        date_to = datetime.date.fromisoformat(date_to_str) if date_to_str else date_from + datetime.timedelta(days=6)
+        data = _adapter.get_menus(date_from, date_to)
+        return jsonify([menu_to_dict(m) for m in data])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/export/ical', methods=['GET'])
+def export_ical():
+    if not _adapter.is_logged_in():
+        return jsonify({"error": "Non connecté"}), 401
+    try:
+        date_from_str = request.args.get('from')
+        date_to_str = request.args.get('to')
+        date_from = datetime.date.fromisoformat(date_from_str) if date_from_str else None
+        date_to = datetime.date.fromisoformat(date_to_str) if date_to_str else None
+        ical_payload = _adapter.export_ical(date_from, date_to)
+        return Response(
+            ical_payload,
+            mimetype="text/calendar",
+            headers={"Content-Disposition": "attachment; filename=pronote.ics"},
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

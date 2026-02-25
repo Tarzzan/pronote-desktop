@@ -83,6 +83,10 @@ class DummyAdapter:
         periods=None,
         discussions=None,
         informations=None,
+        homeworks=None,
+        recipients=None,
+        menus=None,
+        ical_payload="BEGIN:VCALENDAR\nEND:VCALENDAR\n",
     ):
         self._login_result = login_result
         self._logged_in = logged_in
@@ -90,6 +94,10 @@ class DummyAdapter:
         self._periods = periods or []
         self._discussions = discussions or []
         self._informations = informations or []
+        self._homeworks = homeworks or []
+        self._recipients = recipients or []
+        self._menus = menus or []
+        self._ical_payload = ical_payload
         self.login_calls = []
 
     def login(self, pronote_url, username, password):
@@ -114,7 +122,7 @@ class DummyAdapter:
         return list(self._lessons)
 
     def get_homework(self, date_from, date_to):
-        return []
+        return list(self._homeworks)
 
     def get_periods(self):
         return list(self._periods)
@@ -124,6 +132,78 @@ class DummyAdapter:
 
     def get_informations(self):
         return list(self._informations)
+
+    def set_homework_done(self, homework_id, done):
+        for homework in self._homeworks:
+            if str(getattr(homework, "id", "")) == str(homework_id):
+                setattr(homework, "done", bool(done))
+                return True
+        return False
+
+    def get_lesson_content(self, lesson_id, date_from, date_to):
+        for lesson in self._lessons:
+            if str(getattr(lesson, "id", "")) == str(lesson_id):
+                return getattr(lesson, "content", None)
+        return None
+
+    def get_recipients(self):
+        return list(self._recipients)
+
+    def create_discussion(self, recipient_ids, subject, content):
+        if not recipient_ids:
+            raise RuntimeError("no recipients")
+        discussion = types.SimpleNamespace(
+            id="new-discussion-id",
+            subject=subject,
+            creator="Moi",
+            unread=False,
+            date=dt.datetime(2026, 2, 14, 8, 0),
+            messages=[types.SimpleNamespace(id="msg-1", author="Moi", content=content, date=dt.datetime(2026, 2, 14, 8, 0), seen=True)],
+        )
+        self._discussions.append(discussion)
+        return discussion
+
+    def reply_discussion(self, discussion_id, content):
+        for discussion in self._discussions:
+            if str(getattr(discussion, "id", "")) == str(discussion_id):
+                messages = list(getattr(discussion, "messages", []))
+                messages.append(
+                    types.SimpleNamespace(
+                        id=f"reply-{len(messages)+1}",
+                        author="Moi",
+                        content=content,
+                        date=dt.datetime(2026, 2, 14, 8, 5),
+                        seen=True,
+                    )
+                )
+                setattr(discussion, "messages", messages)
+                return True
+        return False
+
+    def mark_discussion(self, discussion_id, mark_as):
+        for discussion in self._discussions:
+            if str(getattr(discussion, "id", "")) == str(discussion_id):
+                setattr(discussion, "unread", mark_as == "unread")
+                return True
+        return False
+
+    def delete_discussion(self, discussion_id):
+        before = len(self._discussions)
+        self._discussions = [d for d in self._discussions if str(getattr(d, "id", "")) != str(discussion_id)]
+        return len(self._discussions) < before
+
+    def mark_information_read(self, information_id):
+        for info in self._informations:
+            if str(getattr(info, "id", "")) == str(information_id):
+                setattr(info, "read", True)
+                return True
+        return False
+
+    def get_menus(self, date_from, date_to):
+        return list(self._menus)
+
+    def export_ical(self, date_from, date_to):
+        return self._ical_payload
 
 
 class BackendFactoryContractTests(unittest.TestCase):
@@ -321,6 +401,131 @@ class BackendRoutesContractTests(unittest.TestCase):
         self.assertEqual(body[0]["subject"]["name"], "Mathématiques")
         self.assertEqual(body[0]["group_names"], ["1G1", "1G2"])
         self.assertEqual(body[0]["classroom"], "B12")
+
+    def test_extended_endpoints_require_authentication(self):
+        self.api._adapter = DummyAdapter(logged_in=False)
+
+        checks = [
+            ("get", "/api/recipients"),
+            ("get", "/api/menus"),
+            ("get", "/api/export/ical"),
+            ("patch", "/api/homework/h1/done"),
+            ("get", "/api/lessons/l1/content"),
+            ("post", "/api/discussions/new"),
+            ("post", "/api/discussions/d1/reply"),
+            ("patch", "/api/discussions/d1/status"),
+            ("delete", "/api/discussions/d1"),
+            ("patch", "/api/informations/i1/read"),
+        ]
+
+        for method, endpoint in checks:
+            kwargs = {"json": {}} if method in ("post", "patch", "put") else {}
+            response = getattr(self.client, method)(endpoint, **kwargs)
+            self.assertEqual(response.status_code, 401)
+            self.assertEqual(response.get_json(), {"error": "Non connecté"})
+
+    def test_homework_done_update_contract(self):
+        homework = types.SimpleNamespace(id="h1", done=False)
+        self.api._adapter = DummyAdapter(logged_in=True, homeworks=[homework])
+
+        response = self.client.patch("/api/homework/h1/done", json={"done": True})
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(body, {"updated": True, "id": "h1", "done": True})
+        self.assertTrue(homework.done)
+
+    def test_lesson_content_contract(self):
+        lesson = types.SimpleNamespace(id="l1", content="<p>Contenu du cours</p>")
+        self.api._adapter = DummyAdapter(logged_in=True, lessons=[lesson])
+
+        response = self.client.get("/api/lessons/l1/content")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(body["id"], "l1")
+        self.assertEqual(body["content"], "<p>Contenu du cours</p>")
+
+    def test_recipients_contract(self):
+        recipient = types.SimpleNamespace(id="r1", identity=types.SimpleNamespace(name="Direction"), kind="admin")
+        self.api._adapter = DummyAdapter(logged_in=True, recipients=[recipient])
+
+        response = self.client.get("/api/recipients")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]["id"], "r1")
+        self.assertEqual(body[0]["name"], "Direction")
+
+    def test_create_discussion_contract(self):
+        recipient = types.SimpleNamespace(id="r1", identity=types.SimpleNamespace(name="Direction"), kind="admin")
+        self.api._adapter = DummyAdapter(logged_in=True, recipients=[recipient])
+
+        response = self.client.post(
+            "/api/discussions/new",
+            json={"recipient_ids": ["r1"], "subject": "Objet test", "content": "Contenu test"},
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertTrue(body["created"])
+        self.assertEqual(body["discussion"]["subject"], "Objet test")
+        self.assertEqual(len(body["discussion"]["messages"]), 1)
+
+    def test_reply_mark_delete_discussion_contract(self):
+        discussion = types.SimpleNamespace(
+            id="d1",
+            subject="Sujet",
+            creator="Direction",
+            unread=True,
+            date=dt.datetime(2026, 2, 12, 8, 30),
+            messages=[],
+        )
+        self.api._adapter = DummyAdapter(logged_in=True, discussions=[discussion])
+
+        reply_response = self.client.post("/api/discussions/d1/reply", json={"content": "Réponse"})
+        self.assertEqual(reply_response.status_code, 200)
+        self.assertEqual(reply_response.get_json()["replied"], True)
+
+        mark_response = self.client.patch("/api/discussions/d1/status", json={"mark_as": "read"})
+        self.assertEqual(mark_response.status_code, 200)
+        self.assertEqual(mark_response.get_json()["updated"], True)
+        self.assertFalse(discussion.unread)
+
+        delete_response = self.client.delete("/api/discussions/d1")
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertEqual(delete_response.get_json()["deleted"], True)
+
+    def test_mark_information_read_contract(self):
+        info = types.SimpleNamespace(
+            id="i1",
+            title="Info",
+            author="Admin",
+            content="Texte",
+            creation_date=dt.datetime(2026, 2, 13, 9, 0),
+            read=False,
+            category="Général",
+        )
+        self.api._adapter = DummyAdapter(logged_in=True, informations=[info])
+
+        response = self.client.patch("/api/informations/i1/read", json={})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["updated"], True)
+        self.assertTrue(info.read)
+
+    def test_menus_contract(self):
+        menu = {"date": "2026-02-25", "lunch": ["salade", "poulet", "fruit"]}
+        self.api._adapter = DummyAdapter(logged_in=True, menus=[menu])
+
+        response = self.client.get("/api/menus?from=2026-02-25&to=2026-02-25")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]["date"], "2026-02-25")
+
+    def test_export_ical_contract(self):
+        self.api._adapter = DummyAdapter(logged_in=True, ical_payload="BEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR\n")
+        response = self.client.get("/api/export/ical")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/calendar", response.content_type)
+        self.assertIn("BEGIN:VCALENDAR", response.get_data(as_text=True))
 
     def test_get_selected_period_prefers_id_then_fallback(self):
         period_a = types.SimpleNamespace(id="p1", name="Trimestre 1", start=None, end=None)

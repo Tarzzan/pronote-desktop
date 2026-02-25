@@ -8,7 +8,7 @@ import type { AxiosInstance } from 'axios';
 import type {
   Lesson, Homework, Grade, Average, Period,
   Absence, Delay, Discussion, Information,
-  ClientInfo, PronoteCredentials
+  ClientInfo, PronoteCredentials, Recipient, MenuEntry
 } from '../../types/pronote';
 
 // ─── URL de l'API : compatible navigateur + Electron packagé ─────────────────
@@ -184,6 +184,16 @@ export class PronoteClient {
     }
   }
 
+  async setHomeworkDone(homeworkId: string, done: boolean): Promise<boolean> {
+    try {
+      const resp = await this.http.patch(`/homework/${encodeURIComponent(homeworkId)}/done`, { done });
+      return Boolean(resp.data?.updated);
+    } catch (error) {
+      console.error('[setHomeworkDone] Erreur:', error);
+      return false;
+    }
+  }
+
   private getFallbackHomework(): Homework[] {
     const today = new Date();
     const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
@@ -339,6 +349,66 @@ export class PronoteClient {
     ];
   }
 
+  async replyDiscussion(discussionId: string, content: string): Promise<boolean> {
+    try {
+      const resp = await this.http.post(`/discussions/${encodeURIComponent(discussionId)}/reply`, { content });
+      return Boolean(resp.data?.replied);
+    } catch (error) {
+      console.error('[replyDiscussion] Erreur:', error);
+      return false;
+    }
+  }
+
+  async markDiscussionStatus(discussionId: string, markAs: 'read' | 'unread'): Promise<boolean> {
+    try {
+      const resp = await this.http.patch(`/discussions/${encodeURIComponent(discussionId)}/status`, { mark_as: markAs });
+      return Boolean(resp.data?.updated);
+    } catch (error) {
+      console.error('[markDiscussionStatus] Erreur:', error);
+      return false;
+    }
+  }
+
+  async deleteDiscussion(discussionId: string): Promise<boolean> {
+    try {
+      const resp = await this.http.delete(`/discussions/${encodeURIComponent(discussionId)}`);
+      return Boolean(resp.data?.deleted);
+    } catch (error) {
+      console.error('[deleteDiscussion] Erreur:', error);
+      return false;
+    }
+  }
+
+  async getRecipients(): Promise<Recipient[]> {
+    try {
+      const resp = await this.http.get('/recipients');
+      const data = resp.data;
+      if (!Array.isArray(data)) return [];
+      return data.map((r: Record<string, unknown>) => ({
+        id: String(r.id || ''),
+        name: String(r.name || 'Destinataire'),
+        kind: String(r.kind || 'unknown'),
+      }));
+    } catch (error) {
+      console.error('[getRecipients] Erreur:', error);
+      return [];
+    }
+  }
+
+  async createDiscussion(recipientIds: string[], subject: string, content: string): Promise<boolean> {
+    try {
+      const resp = await this.http.post('/discussions/new', {
+        recipient_ids: recipientIds,
+        subject,
+        content,
+      });
+      return Boolean(resp.data?.created);
+    } catch (error) {
+      console.error('[createDiscussion] Erreur:', error);
+      return false;
+    }
+  }
+
   // ─── Informations & Sondages ───────────────────────────────────────────────
   async getInformations(): Promise<Information[]> {
     try {
@@ -365,6 +435,53 @@ export class PronoteClient {
       { id: '1', title: 'Fermeture exceptionnelle le 27 février', author: 'Administration', content: "L'établissement sera fermé le vendredi 27 février pour cause de journée pédagogique.", date: new Date(2026, 1, 20), read: false, category: "Vie de l'établissement" },
       { id: '2', title: 'Sondage : dates des conseils de classe', author: 'M. DIRECTEUR Jean', content: 'Merci de remplir le sondage concernant vos disponibilités pour les conseils de classe.', date: new Date(2026, 1, 18), read: false, category: 'Sondages' },
     ];
+  }
+
+  async markInformationRead(informationId: string): Promise<boolean> {
+    try {
+      const resp = await this.http.patch(`/informations/${encodeURIComponent(informationId)}/read`, {});
+      return Boolean(resp.data?.updated);
+    } catch (error) {
+      console.error('[markInformationRead] Erreur:', error);
+      return false;
+    }
+  }
+
+  async getMenus(dateFrom: Date, dateTo?: Date): Promise<MenuEntry[]> {
+    try {
+      const from = this.formatDate(dateFrom);
+      const to = this.formatDate(dateTo || new Date(dateFrom.getTime() + 6 * 24 * 60 * 60 * 1000));
+      const resp = await this.http.get(`/menus?from=${from}&to=${to}`);
+      return Array.isArray(resp.data) ? (resp.data as MenuEntry[]) : [];
+    } catch (error) {
+      console.error('[getMenus] Erreur:', error);
+      return [];
+    }
+  }
+
+  async exportIcal(dateFrom?: Date, dateTo?: Date): Promise<string> {
+    try {
+      const params = new URLSearchParams();
+      if (dateFrom) params.set('from', this.formatDate(dateFrom));
+      if (dateTo) params.set('to', this.formatDate(dateTo));
+      const query = params.toString();
+      const path = query ? `/export/ical?${query}` : '/export/ical';
+      const resp = await this.http.get(path, { responseType: 'text' });
+      return typeof resp.data === 'string' ? resp.data : String(resp.data || '');
+    } catch (error) {
+      console.error('[exportIcal] Erreur:', error);
+      return '';
+    }
+  }
+
+  async getLessonContent(lessonId: string): Promise<string> {
+    try {
+      const resp = await this.http.get(`/lessons/${encodeURIComponent(lessonId)}/content`);
+      return String(resp.data?.content || '');
+    } catch (error) {
+      console.error('[getLessonContent] Erreur:', error);
+      return '';
+    }
   }
 
   // ─── Absences ──────────────────────────────────────────────────────────────
