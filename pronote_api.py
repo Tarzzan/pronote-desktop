@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Pronote Desktop — Serveur API Python (proxy pronotepy)
-Version: 1.7.8
+Version: 1.7.9
 Ce serveur Flask fait le pont entre l'interface React et l'API Pronote
 via la bibliothèque pronotepy.
 """
@@ -186,7 +186,7 @@ def spa_fallback(path):
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    return jsonify({"status": "ok", "version": "1.7.8"})
+    return jsonify({"status": "ok", "version": "1.7.9"})
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -423,5 +423,5 @@ if __name__ == '__main__':
     # Valeur par défaut : 127.0.0.1 (local uniquement)
     # Pour accès LAN/WAN : définir "api_host": "0.0.0.0"
     host = CONFIG.get('api_host', '127.0.0.1')
-    print(f"Pronote Desktop API v1.7.8 — http://{host}:{port}")
+    print(f"Pronote Desktop API v1.7.9 — http://{host}:{port}")
     app.run(host=host, port=port, debug=False)

@@ -5,6 +5,22 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.7.9] — 2026-02-25
+
+### Ajouté
+- **Mises à jour in-app (GitHub Releases)** : nouvelle section dans Paramètres avec bouton **Vérifier les mises à jour** et affichage version actuelle / dernière version disponible.
+- **Mise à jour guidée côté utilisateur** : bouton **Mettre à jour maintenant**, progression temps réel (vérification, téléchargement, installation), puis action **Redémarrer l’application** après succès.
+- **API preload sécurisée** : exposition `pronoteDesktopUpdates` (check/install/restart + événements de progression) pour découpler proprement UI et process principal.
+
+### Corrigé
+- **Version affichée dans Paramètres** : suppression de la version hardcodée, alignement automatique sur `__APP_VERSION__`.
+- **Robustesse des releases Linux** : sélection automatique de l’asset `.deb` compatible architecture (`amd64`), avec prévention des mises à jour concurrentes.
+
+### Sécurité
+- **Validation stricte des sources de mise à jour** : autorisation limitée aux hôtes GitHub (`api.github.com`, `github.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com`) et HTTPS obligatoire.
+- **Intégrité du paquet** : vérification SHA256 du `.deb` téléchargé via le `digest` de la release GitHub quand disponible.
+- **Fallback explicite en cas de droits insuffisants** : tentative `pkexec` puis `sudo -n`, avec commande manuelle fournie si l’installation automatique échoue.
+
 ## [1.7.8] — 2026-02-25
 
 ### Corrigé
