@@ -437,6 +437,65 @@ class BackendRoutesContractTests(unittest.TestCase):
         self.assertEqual(body[0]["author"], "Administration")
         self.assertEqual(body[0]["read"], False)
 
+    def test_grades_returns_empty_on_period_error(self):
+        class BrokenPeriod:
+            id = "p1"
+            name = "Trimestre 1"
+            start = None
+            end = None
+
+            @property
+            def grades(self):
+                raise RuntimeError("boom grades")
+
+        self.api._adapter = DummyAdapter(logged_in=True, periods=[BrokenPeriod()])
+        response = self.client.get("/api/grades?period_id=p1")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), [])
+
+    def test_absences_returns_empty_on_period_error(self):
+        class BrokenPeriod:
+            id = "p1"
+            name = "Trimestre 1"
+            start = None
+            end = None
+
+            @property
+            def absences(self):
+                raise RuntimeError("boom absences")
+
+        self.api._adapter = DummyAdapter(logged_in=True, periods=[BrokenPeriod()])
+        response = self.client.get("/api/absences?period_id=p1")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), [])
+
+    def test_discussions_defaults_when_fields_are_missing(self):
+        discussion = types.SimpleNamespace(id="dsc-2")
+        self.api._adapter = DummyAdapter(logged_in=True, discussions=[discussion])
+
+        response = self.client.get("/api/discussions")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]["id"], "dsc-2")
+        self.assertEqual(body[0]["subject"], "Sans objet")
+        self.assertEqual(body[0]["creator"], "Inconnu")
+        self.assertEqual(body[0]["messages"], [])
+
+    def test_informations_defaults_when_fields_are_missing(self):
+        info = types.SimpleNamespace(id="info-2")
+        self.api._adapter = DummyAdapter(logged_in=True, informations=[info])
+
+        response = self.client.get("/api/informations")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]["id"], "info-2")
+        self.assertEqual(body[0]["title"], "Information")
+        self.assertEqual(body[0]["author"], "Administration")
+        self.assertEqual(body[0]["category"], "Général")
+        self.assertEqual(body[0]["read"], False)
+
 
 if __name__ == "__main__":
     unittest.main()
