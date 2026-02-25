@@ -1,226 +1,153 @@
-# MANUS_HANDOFF.md — Pronote Desktop
+# MANUS_HANDOFF — Pronote Desktop
 
-> **Fichier de passation entre instances Manus.**
-> Si tu es une nouvelle instance Manus travaillant sur ce projet, lis ce fichier en premier.
-> Il contient tout l'historique, l'état actuel et les prochaines actions à mener.
-
----
-
-## Section A — Historique des actions menées
-
-### Tableau des versions publiées
-
-| Version | Date | Description | Release GitHub |
-|---------|------|-------------|----------------|
-| v1.0.1 | 2026-02-24 | Première version publique — interface complète (dashboard, EDT, notes, messagerie, vie scolaire, dark mode, auth QR) | [v1.0.1](https://github.com/Tarzzan/pronote-desktop/releases/tag/v1.0.1) |
-| v1.1.0 | 2026-02-24 | API Pronote réelle via `pronotepy`, store Zustand, CI/CD GitHub Actions, script de versioning automatique | [v1.1.0](https://github.com/Tarzzan/pronote-desktop/releases/tag/v1.1.0) |
-| v1.2.0 | 2026-02-24 | Backend Flask (`pronote_api.py`), correction CSS critique, ErrorBoundary React, remontée d'erreurs GitHub | [v1.2.0](https://github.com/Tarzzan/pronote-desktop/releases/tag/v1.2.0) |
-| v1.3.0 | 2026-02-24 | Bulletins scolaires (RadarChart), compétences, QCM, graphiques (PieChart/BarChart), animations framer-motion | [v1.3.0](https://github.com/Tarzzan/pronote-desktop/releases/tag/v1.3.0) |
-| v1.3.1 | 2026-02-24 | **Correction critique** : chemin venv incohérent (`/opt/` vs `/usr/lib/`), compatibilité Ubuntu 24.04+ (PEP 668), paquet offline avec 19 wheels embarqués | [v1.3.1](https://github.com/Tarzzan/pronote-desktop/releases/tag/v1.3.1) |
-| v1.4.0 | 2026-02-24 | Icône multi-résolution, service systemd, vérificateur MAJ, AppStream, conffiles, preinst, description enrichie | [v1.4.0](https://github.com/Tarzzan/pronote-desktop/releases/tag/v1.4.0) |
-| v1.5.0 | 2026-02-24 | Port configurable, thème sombre persistant, notifications desktop, icône SVG scalable, captures AppStream, correction de toutes les versions hardcodées | [v1.5.0](https://github.com/Tarzzan/pronote-desktop/releases/tag/v1.5.0) |
-| **v1.6.0** | **2026-02-24** | **Appel de présence, Paramètres, Nouveau message, Saisie devoirs, mémorisation identifiants, correction bugs** | [v1.6.0](https://github.com/Tarzzan/pronote-desktop/releases/tag/v1.6.0) |
-
-### Problèmes résolus
-
-| Problème | Version | Solution |
-|----------|---------|----------|
-| Données statiques hardcodées | v1.1.0 | Remplacement par appels réels à l'API Pronote via `pronotepy` |
-| CSS écrasé en production | v1.2.0 | Suppression du reset `* { box-sizing }` dans `index.css` |
-| `pip install` échoue sur Ubuntu 24.04+ | v1.3.1 | Utilisation d'un venv isolé + `--no-index --find-links` |
-| Chemin venv incohérent | v1.3.1 | Unification sur `/usr/lib/pronote-desktop/python-env` |
-| Délai de 2s au démarrage | v1.4.0 | Service systemd qui maintient le backend actif en permanence |
-| Aucune icône dans le menu | v1.4.0 | Icônes PNG multi-résolution + cache hicolor |
-| Versions hardcodées dans les sources | v1.5.0 | Correction dans pronote_api.py, Sidebar, ErrorBoundary, LoginPage, PlaceholderPage |
-| Lien GitHub incorrect dans ErrorBoundary | v1.5.0 | Corrigé vers `Tarzzan/pronote-desktop` |
-| Thème sombre non persisté | v1.5.0 | Sauvegarde dans localStorage |
-| Port Flask non configurable | v1.5.0 | Lecture depuis `/etc/pronote-desktop/config.json` |
-| Icône SVG manquante | v1.5.0 | Création de `pronote-desktop.svg` dans `scalable/apps/` |
-| Pages placeholder sans fonctionnalité | v1.6.0 | Implémentation de 4 pages clés + amélioration connexion |
-| Version hardcodée dans client.ts | v1.6.0 | Corrigée vers v1.6.0 |
-
-### Décisions d'architecture
-
-- **Architecture choisie** : application web locale (React + Flask) plutôt qu'Electron, pour réduire la taille du paquet (19 Mo avec wheels vs ~200 Mo Electron)
-- **Backend** : serveur Flask Python sur `localhost:5174` (configurable), proxy vers l'API Pronote via `pronotepy`
-- **Frontend** : React + TypeScript + TailwindCSS, compilé en bundle statique (`dist/`)
-- **Distribution** : paquet `.deb` manuel (sans electron-builder) pour un contrôle total sur la structure
-- **Offline** : wheels Python embarqués dans `/usr/lib/pronote-desktop/wheels/` pour éviter toute dépendance réseau à l'installation
+> **Fichier de passation pour la prochaine instance Manus.**
+> Lire ce fichier en premier avant toute action sur ce projet.
 
 ---
 
-## Section B — État actuel du projet (v1.6.0)
+## A. État actuel
 
-### Fonctionnalités implémentées
+| Champ | Valeur |
+|---|---|
+| **Version publiée** | v1.6.1 |
+| **Dépôt GitHub** | https://github.com/Tarzzan/pronote-desktop |
+| **Dernière release** | https://github.com/Tarzzan/pronote-desktop/releases/tag/v1.6.1 |
+| **Type de paquet** | `.deb` offline amd64 (Ubuntu 22.04 / 24.04) |
+| **Wheels Python** | 19 wheels CP312 dans `/usr/lib/pronote-desktop/wheels/` |
+| **Venv** | `/usr/lib/pronote-desktop/python-env` |
+| **Service systemd** | `pronote-desktop-api.service` |
+| **Config** | `/etc/pronote-desktop/config.json` |
 
-| Fonctionnalité | État | Détail |
+---
+
+## B. Historique des versions
+
+| Version | Date | Description |
 |---|---|---|
-| Dashboard | Fonctionnel | Agrégation des données principales |
-| Emploi du temps | Fonctionnel | Vue semaine, navigation |
-| Notes | Fonctionnel | Moyennes, graphiques, par période |
-| Devoirs | Fonctionnel | Liste, filtres par date |
-| Saisie des devoirs | **Fonctionnel (v1.6.0)** | Formulaire avec date d'échéance et matière |
-| Messagerie | Fonctionnel | Lecture des discussions |
-| Nouveau message | **Fonctionnel (v1.6.0)** | Composition avec destinataires (envoi simulé) |
-| Absences/Retards | Fonctionnel | Liste avec justification |
-| Appel de présence | **Fonctionnel (v1.6.0)** | Formulaire interactif présent/absent/retard (simulé) |
-| Informations | Fonctionnel | Actualités de l'établissement |
-| Bulletins | Fonctionnel | Par période, RadarChart |
-| Compétences | Fonctionnel | Évaluations par compétence |
-| QCM | Fonctionnel | Liste des évaluations |
-| Paramètres | **Fonctionnel (v1.6.0)** | Interface pour modifier config.json |
-| Connexion | **Amélioré (v1.6.0)** | Mémorisation identifiants via localStorage |
-| Thème sombre | Fonctionnel | Persisté dans localStorage |
-| Notifications desktop | Fonctionnel | Via `notify-send` |
-| Port configurable | Fonctionnel | Via `/etc/pronote-desktop/config.json` |
-| Service systemd | Fonctionnel | `pronote-desktop-api.service` |
-| Vérificateur MAJ | Fonctionnel | `check-update.sh` au démarrage |
-| AppStream | Fonctionnel | `fr.pronote.desktop.metainfo.xml` |
-| Icône SVG scalable | Fonctionnel | `pronote-desktop.svg` |
-
-### Pages encore en Placeholder
-
-- `/timetable/multi` — Emploi du temps multi-classes
-- `/grades/edit` — Saisie des notes
-- `/grades/appreciations` — Appréciations
-- `/homework/planning` — Planning
-- `/homework/exams` — **Examens/Contrôles** ← priorité haute v1.7.0
-- `/attendance/sanctions` — Sanctions
-- `/students`, `/students/:id` — Gestion élèves
-- `/parents` — Communication parents
-- `/reports` — Rapports
-- `/schedule` — Gestion EDT
-- `/resources` — Ressources pédagogiques
-
-### Bugs connus (à corriger en priorité)
-
-| Bug | Criticité | Description |
-|-----|-----------|-------------|
-| Appel de présence simulé | **Haute** | `AttendanceCallPage.tsx` envoie l'appel mais `/api/call` n'existe pas dans Flask — à implémenter |
-| Envoi de message simulé | **Haute** | `NewMessagePage.tsx` simule l'envoi — `/api/send_message` non implémenté dans Flask |
-| Race condition démarrage | Faible | Le navigateur peut s'ouvrir avant que Flask soit prêt |
-| Pas de reconnexion auto | Moyenne | Session Pronote expirée → reconnexion manuelle requise |
-
-### Structure du dépôt
-
-```
-pronote-desktop/
-├── src/
-│   ├── App.tsx                    # Routes React (React Router)
-│   ├── lib/
-│   │   ├── pronote-client.ts      # Client API (appels vers Flask)
-│   │   └── store.ts               # Store Zustand (auth, user)
-│   └── pages/
-│       ├── AttendanceCallPage.tsx  # Appel de présence (v1.6.0)
-│       ├── SettingsPage.tsx        # Paramètres (v1.6.0)
-│       ├── NewMessagePage.tsx      # Nouveau message (v1.6.0)
-│       ├── HomeworkEditPage.tsx    # Saisie devoirs (v1.6.0)
-│       └── LoginPage.tsx           # Connexion améliorée (v1.6.0)
-├── pronote_api.py                 # Backend Flask Python (v1.6.0)
-├── build-resources/
-│   ├── postinst.sh               # Script d'installation (venv Python)
-│   └── icons/                    # Icônes PNG multi-résolution + SVG
-├── scripts/
-│   └── uninstall.sh              # Script de désinstallation complet
-├── docs/
-│   ├── screenshots/              # Captures AppStream
-│   └── manus-config/
-│       ├── build-config.json     # Config de build pour Manus
-│       ├── release-checklist.md  # Checklist avant release
-│       └── github-setup.md       # Guide création token GitHub
-└── MANUS_HANDOFF.md              # CE FICHIER
-```
+| v1.1.0 | 2025 | Version initiale |
+| v1.2.0 | 2025 | Amélioration UI |
+| v1.3.0 | 2025 | Corrections diverses |
+| v1.3.1 | 2026-02 | Fix Ubuntu 24.04 (PEP 668) — premier paquet offline |
+| v1.4.0 | 2026-02 | Icône, systemd, AppStream, vérificateur MAJ, conffiles |
+| v1.5.0 | 2026-02 | Port configurable, thème persistant, notifications, icône SVG, captures AppStream |
+| v1.6.0 | 2026-02 | Page appel présence, Paramètres, Nouveau message, Saisie devoirs, mémorisation identifiants |
+| v1.6.1 | 2026-02 | **Correctifs critiques** : wheels CP312, Flask sert le frontend, launcher Chrome --app |
 
 ---
 
-## Section C — Backlog priorisé (v1.7.0)
+## C. Architecture technique
 
-### Haute priorité — À faire en premier
+```
+/usr/lib/pronote-desktop/
+├── assets/          ← Bundle React (JS + CSS, ~1 Mo)
+├── wheels/          ← 19 wheels Python CP312
+├── index.html       ← Point d'entrée SPA
+├── pronote_api.py   ← Serveur Flask (port 5000, configurable)
+└── python-env/      ← Venv Python (créé à l'installation)
 
-1. **Implémenter `/api/call` dans `pronote_api.py`** : endpoint POST pour saisir l'appel de présence via `pronotepy`. La page frontend `AttendanceCallPage.tsx` est prête, il manque juste le backend.
+/usr/bin/pronote-desktop      ← Launcher (Chrome --app > Chromium > xdg-open)
+/etc/pronote-desktop/config.json  ← Configuration (port, thème, notifications)
+/etc/systemd/system/pronote-desktop-api.service
+/usr/share/metainfo/fr.pronote.desktop.metainfo.xml
+/usr/share/icons/hicolor/{16,32,48,128,256,512}x*/apps/pronote-desktop.png
+/usr/share/icons/hicolor/scalable/apps/pronote-desktop.svg
+```
 
-2. **Implémenter `/api/send_message` dans `pronote_api.py`** : endpoint POST pour envoyer un message via `pronotepy`. La page `NewMessagePage.tsx` est prête.
+### Routes Flask disponibles (pronote_api.py)
 
-3. **Page Examens/Contrôles** (`/homework/exams`) : calendrier des contrôles avec matière, date, coefficient. Endpoint Flask : `/api/exams`.
-
-4. **Page Compétences détaillée** (`/bulletins/competences`) : tableau des compétences par matière avec niveaux A/B/C/D.
-
-### Priorité moyenne
-
-5. **Dépôt APT** sur GitHub Pages pour `apt upgrade` natif
-6. **Page Appréciations** (`/grades/appreciations`) — saisie des appréciations par matière
-7. **Page Vie scolaire** (`/bulletins/vie-scolaire`) — comportement, travail, assiduité
-8. **Reconnexion automatique** — renouveler la session Pronote expirée sans action utilisateur
-
-### Infrastructure
-
-9. **GitHub Actions CI** : workflow `.github/workflows/build.yml` pour construire automatiquement le .deb à chaque tag
-
-### Basse priorité
-
-10. **Support macOS** — `.pkg` ou `.dmg`
-11. **Version Flatpak** — portage pour Flathub
+| Route | Méthode | Statut |
+|---|---|---|
+| `/` | GET | Sert index.html |
+| `/assets/<path>` | GET | Sert les assets React |
+| `/api/login` | POST | Connexion Pronote |
+| `/api/timetable` | GET | Emploi du temps |
+| `/api/grades` | GET | Notes |
+| `/api/averages` | GET | Moyennes |
+| `/api/homework` | GET | Devoirs |
+| `/api/absences` | GET | Absences |
+| `/api/delays` | GET | Retards |
+| `/api/discussions` | GET | Messagerie |
+| `/api/informations` | GET | Informations |
+| `/api/notify` | POST | Notifications desktop |
+| `/api/config` | GET/POST | Configuration |
+| `/api/call` | POST | **STUB** — appel présence (non implémenté) |
+| `/api/send_message` | POST | **STUB** — envoi message (non implémenté) |
 
 ---
 
-## Section D — Procédures techniques
+## D. Backlog priorisé
 
-### Créer un token GitHub (nécessaire à chaque session)
+### Priorité HAUTE (v1.7.0)
 
-1. Aller sur https://github.com/settings/tokens?type=beta
-2. Cliquer **Generate new token**
-3. Sélectionner le dépôt : `Tarzzan/pronote-desktop`
-4. Permissions requises : **Contents** (Read and write) + **Workflows** (Read and write)
-5. Expiration : 2 jours (Custom)
-6. Configurer dans git : `git remote set-url origin "https://x-access-token:{TOKEN}@github.com/Tarzzan/pronote-desktop.git"`
+1. **Implémenter `/api/call`** dans `pronote_api.py` — la page frontend `/attendance/call` est prête mais l'endpoint Flask retourne une erreur 501. Nécessite `pronotepy` pour soumettre l'appel.
+2. **Implémenter `/api/send_message`** dans `pronote_api.py` — la page `/messaging/new` est prête mais l'envoi ne fonctionne pas.
+3. **Page Examens/Contrôles** (`/homework/exams`) — actuellement `PlaceholderPage`.
 
-### Commandes de build reproductibles
+### Priorité MOYENNE (v1.8.0)
+
+4. **Page Planning devoirs** (`/homework/planning`) — vue calendrier des devoirs.
+5. **Page Sanctions** (`/attendance/sanctions`) — liste des punitions/sanctions.
+6. **Page Compétences** (`/competencies`) — évaluation par compétences.
+7. **Page QCM** (`/qcm`) — quiz interactifs.
+
+### Priorité BASSE (v2.0)
+
+8. **Dépôt APT** sur GitHub Pages pour `apt upgrade` natif.
+9. **Support multi-établissements** — switcher de compte dans la sidebar.
+10. **Version Flatpak** pour Flathub.
+
+---
+
+## E. Bugs connus
+
+| Bug | Sévérité | Description |
+|---|---|---|
+| `/api/call` retourne 501 | Haute | Endpoint stub, non implémenté dans pronotepy |
+| `/api/send_message` retourne 501 | Haute | Endpoint stub, non implémenté |
+| Captures d'écran AppStream générées par IA | Basse | Pas de vraies captures de l'UI réelle |
+
+---
+
+## F. Procédure de build
+
+Voir `docs/manus-config/release-checklist.md` et `docs/manus-config/build-config.json`.
+
+### Commandes essentielles
 
 ```bash
-# 1. Construire le frontend
-cd /home/ubuntu/pronote-desktop
-pnpm build:web   # Génère dist/
+# 1. Build frontend
+cd /home/ubuntu/pronote-desktop && pnpm build:web
 
-# 2. Assembler depuis le .deb précédent
-dpkg-deb --fsys-tarfile pronote-desktop_PREV_offline_amd64.deb | tar -x -C /tmp/pronote-vNEW/
-# Mettre à jour les fichiers modifiés dans /tmp/pronote-vNEW/
-# Extraire les scripts DEBIAN du .deb précédent et mettre à jour la version
+# 2. Télécharger wheels CP312
+pip3 download pronotepy flask flask-cors \
+  --dest /tmp/wheels-cp312 \
+  --python-version 3.12 --platform manylinux2014_x86_64 \
+  --only-binary :all: 2>/dev/null || \
+pip3 download pronotepy flask flask-cors --dest /tmp/wheels-cp312
 
-# 3. Construire le paquet
-dpkg-deb --build /tmp/pronote-vNEW pronote-desktop_X.Y.Z_offline_amd64.deb
-```
+# 3. Assembler depuis le .deb précédent
+dpkg-deb --fsys-tarfile pronote-desktop_PREV.deb | tar -x -C /tmp/pkg-build/
 
-### Créer une release GitHub
+# 4. Construire
+dpkg-deb --build /tmp/pkg-build/ pronote-desktop_VERSION_offline_amd64.deb
 
-```bash
-TOKEN="github_pat_..."
-
-# Créer la release
-RELEASE_ID=$(curl -s -X POST \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
+# 5. Créer release GitHub
+curl -X POST -H "Authorization: Bearer TOKEN" \
   "https://api.github.com/repos/Tarzzan/pronote-desktop/releases" \
-  --data "{\"tag_name\":\"vX.Y.Z\",\"name\":\"vX.Y.Z — Description\",\"body\":\"Notes de release\",\"draft\":false}" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+  -d '{"tag_name":"vVERSION","name":"vVERSION — Description",...}'
 
-# Uploader le .deb
-curl -s \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/vnd.debian.binary-package" \
-  --data-binary @pronote-desktop_X.Y.Z_offline_amd64.deb \
-  "https://uploads.github.com/repos/Tarzzan/pronote-desktop/releases/${RELEASE_ID}/assets?name=pronote-desktop_X.Y.Z_offline_amd64.deb"
+# 6. Uploader le .deb
+curl -X POST -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary @pronote-desktop_VERSION_offline_amd64.deb \
+  "https://uploads.github.com/repos/Tarzzan/pronote-desktop/releases/RELEASE_ID/assets?name=..."
 ```
 
 ---
 
-## Section E — Fichiers de configuration pour la prochaine instance
+## G. Notes importantes
 
-Voir le dossier `docs/manus-config/` dans ce dépôt :
-
-- **`build-config.json`** : paramètres de build complets (version, chemins, liste des wheels)
-- **`release-checklist.md`** : liste de contrôle à suivre avant chaque release
-- **`github-setup.md`** : procédure détaillée de création du token GitHub
-
----
-
-*Dernière mise à jour : 2026-02-24 par Manus (instance de construction v1.6.0)*
+- Le token GitHub Fine-grained PAT expire rapidement (2 jours). Créer un nouveau token sur https://github.com/settings/personal-access-tokens/new avec permissions **Contents (Read & Write)** et **Workflows** sur le dépôt `pronote-desktop`.
+- Le sandbox Manus peut télécharger les wheels CP312 directement avec `pip3 download` — pas besoin de cross-compilation.
+- Le paquet `.deb` est construit manuellement (pas avec electron-builder) pour contrôler exactement les chemins.
+- `pronote_api.py` sert maintenant le frontend React via `send_from_directory` — Flask est à la fois l'API et le serveur web statique.
