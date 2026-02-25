@@ -1,0 +1,42 @@
+name: Backend Contract Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'v2/**'
+    paths:
+      - 'pronote_api.py'
+      - 'tests/test_backend_contract.py'
+      - '.github/workflows/backend-contract-tests.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'pronote_api.py'
+      - 'tests/test_backend_contract.py'
+      - '.github/workflows/backend-contract-tests.yml'
+
+jobs:
+  backend-contract:
+    name: Python Backend Contract Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install minimal backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install flask
+
+      - name: Run backend contract tests
+        run: python -m unittest discover -s tests -p 'test_backend_contract.py'

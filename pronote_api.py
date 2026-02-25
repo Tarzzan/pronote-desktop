@@ -12,6 +12,7 @@ import json
 import os
 import subprocess
 import traceback
+from typing import Any, List, Optional, Tuple
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
@@ -40,8 +41,164 @@ DIST_DIR = os.path.join(BASE_DIR, 'dist') if os.path.isdir(os.path.join(BASE_DIR
 app = Flask(__name__, static_folder=os.path.join(DIST_DIR, 'assets'), static_url_path='/assets')
 CORS(app, origins=["*"])
 
-# Session Pronote en mémoire
-_client: pronotepy.Client | None = None
+# ─── Backend Adapter (V2 spike foundation) ────────────────────────────────────
+class AdapterError(Exception):
+    """Erreur remontée par la couche d'adaptation backend."""
+
+
+class PronoteBackendAdapter:
+    """Contrat minimal d'un backend Pronote.
+
+    Cette couche isole Flask des détails de l'implémentation cliente.
+    Objectif du spike: pouvoir brancher une implémentation alternative sans
+    toucher les routes (ex: pronotepy refonte, async, cache, retry custom).
+    """
+
+    def login(self, pronote_url: str, username: str, password: str) -> bool:
+        raise NotImplementedError
+
+    def logout(self) -> None:
+        raise NotImplementedError
+
+    def is_logged_in(self) -> bool:
+        raise NotImplementedError
+
+    def get_client(self) -> Any:
+        raise NotImplementedError
+
+    def get_lessons(self, date_from: datetime.date, date_to: datetime.date) -> list[Any]:
+        raise NotImplementedError
+
+    def get_homework(self, date_from: datetime.date, date_to: datetime.date) -> list[Any]:
+        raise NotImplementedError
+
+    def get_periods(self) -> list[Any]:
+        raise NotImplementedError
+
+    def get_discussions(self) -> list[Any]:
+        raise NotImplementedError
+
+    def get_informations(self) -> list[Any]:
+        raise NotImplementedError
+
+
+class PronotepySyncAdapter(PronoteBackendAdapter):
+    """Implémentation actuelle basée sur pronotepy synchrone."""
+
+    def __init__(self) -> None:
+        self._client: Optional[pronotepy.Client] = None
+
+    def login(self, pronote_url: str, username: str, password: str) -> bool:
+        self._client = pronotepy.Client(pronote_url, username=username, password=password)
+        return bool(self._client and self._client.logged_in)
+
+    def logout(self) -> None:
+        self._client = None
+
+    def is_logged_in(self) -> bool:
+        return bool(self._client and self._client.logged_in)
+
+    def get_client(self) -> Any:
+        if not self.is_logged_in():
+            raise AdapterError("Non connecté")
+        return self._client
+
+    def get_lessons(self, date_from: datetime.date, date_to: datetime.date) -> list[Any]:
+        client = self.get_client()
+        return list(client.lessons(date_from, date_to))
+
+    def get_homework(self, date_from: datetime.date, date_to: datetime.date) -> list[Any]:
+        client = self.get_client()
+        return list(client.homework(date_from, date_to))
+
+    def get_periods(self) -> list[Any]:
+        client = self.get_client()
+        return list(client.periods)
+
+    def get_discussions(self) -> list[Any]:
+        client = self.get_client()
+        return list(client.discussions())
+
+    def get_informations(self) -> list[Any]:
+        client = self.get_client()
+        return list(client.information_and_surveys())
+
+
+class PronotepyRefonteAdapter(PronotepySyncAdapter):
+    """Spike adapter pour préparer une refonte pronotepy sans casser l'existant.
+
+    La connexion tente d'abord `TeacherClient` (si disponible), puis bascule
+    automatiquement sur `Client` pour rester compatible avec les versions
+    historiques de la librairie.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        raw_preference = os.environ.get("PRONOTE_REFRONTE_PREFER_TEACHER_CLIENT", "1").strip().lower()
+        self._prefer_teacher_client = raw_preference not in ("0", "false", "no", "off")
+        self._client_kind = "none"
+
+    def _build_client_candidates(self) -> List[Tuple[str, Any]]:
+        teacher_cls = getattr(pronotepy, "TeacherClient", None)
+        ordered_candidates: List[Tuple[str, Any]] = []
+
+        if self._prefer_teacher_client and teacher_cls is not None:
+            ordered_candidates.append(("pronotepy.TeacherClient", teacher_cls))
+        ordered_candidates.append(("pronotepy.Client", pronotepy.Client))
+        if (not self._prefer_teacher_client) and teacher_cls is not None:
+            ordered_candidates.append(("pronotepy.TeacherClient", teacher_cls))
+
+        # Évite un doublon si TeacherClient pointe déjà vers Client.
+        deduplicated: List[Tuple[str, Any]] = []
+        seen = set()
+        for name, cls in ordered_candidates:
+            marker = id(cls)
+            if marker in seen:
+                continue
+            seen.add(marker)
+            deduplicated.append((name, cls))
+        return deduplicated
+
+    def login(self, pronote_url: str, username: str, password: str) -> bool:
+        last_error: Optional[Exception] = None
+        self._client = None
+        self._client_kind = "none"
+
+        for candidate_name, candidate_cls in self._build_client_candidates():
+            self._client_kind = candidate_name
+            try:
+                candidate_client = candidate_cls(pronote_url, username=username, password=password)
+            except Exception as exc:
+                last_error = exc
+                continue
+
+            if bool(getattr(candidate_client, "logged_in", False)):
+                self._client = candidate_client
+                self._client_kind = candidate_name
+                return True
+
+        if last_error is not None:
+            raise AdapterError(f"Échec de connexion backend ({self._client_kind}): {last_error}")
+        return False
+
+
+def build_backend_adapter() -> PronoteBackendAdapter:
+    """Factory de backend.
+
+    Le nom est piloté par PRONOTE_BACKEND_ADAPTER pour faciliter les spikes.
+    Valeurs supportées:
+    - pronotepy-sync (défaut)
+    - pronotepy-refonte
+    """
+    adapter_name = os.environ.get("PRONOTE_BACKEND_ADAPTER", "pronotepy-sync").strip().lower()
+    if adapter_name in ("", "pronotepy-sync"):
+        return PronotepySyncAdapter()
+    if adapter_name in ("pronotepy-refonte", "refonte-pronotepy"):
+        return PronotepyRefonteAdapter()
+    raise RuntimeError(f"Backend adapter non supporté: {adapter_name}")
+
+
+_adapter = build_backend_adapter()
 
 def client_to_dict(client: pronotepy.Client) -> dict:
     return {
@@ -137,19 +294,24 @@ def discussion_to_dict(d) -> dict:
         for m in d.messages:
             messages.append({
                 "id": str(m.id) if hasattr(m, 'id') else str(id(m)),
-                "author": str(m.author) if m.author else "Inconnu",
-                "content": str(m.content) if m.content else "",
+                "author": str(getattr(m, 'author', None)) if getattr(m, 'author', None) else "Inconnu",
+                "content": str(getattr(m, 'content', None)) if getattr(m, 'content', None) else "",
                 "date": m.date.isoformat() if hasattr(m, 'date') and m.date else "",
                 "seen": bool(m.seen) if hasattr(m, 'seen') else False,
             })
     except Exception:
         pass
+
+    subject = getattr(d, 'subject', None)
+    creator = getattr(d, 'creator', None)
+    date_value = getattr(d, 'date', None)
+
     return {
         "id": str(d.id) if hasattr(d, 'id') else str(id(d)),
-        "subject": str(d.subject) if d.subject else "Sans objet",
-        "creator": str(d.creator) if d.creator else "Inconnu",
+        "subject": str(subject) if subject else "Sans objet",
+        "creator": str(creator) if creator else "Inconnu",
         "unread": bool(d.unread) if hasattr(d, 'unread') else False,
-        "date": d.date.isoformat() if hasattr(d, 'date') and d.date else "",
+        "date": date_value.isoformat() if date_value else "",
         "messages": messages,
         "participants": [],
     }
@@ -164,6 +326,14 @@ def info_to_dict(i) -> dict:
         "read": bool(i.read) if hasattr(i, 'read') else False,
         "category": str(i.category) if hasattr(i, 'category') and i.category else "Général",
     }
+
+
+def get_selected_period(period_id: Optional[str]) -> Any:
+    periods = _adapter.get_periods()
+    if not periods:
+        return None
+    return next((p for p in periods if str(getattr(p, 'id', '')) == str(period_id)), periods[0])
+
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
 
@@ -190,76 +360,68 @@ def health():
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    global _client
     data = request.json
     url = data.get('pronote_url', '')
     username = data.get('username', '')
     password = data.get('password', '')
     try:
-        _client = pronotepy.Client(url, username=username, password=password)
-        if _client.logged_in:
-            return jsonify({"success": True, "client_info": client_to_dict(_client)})
+        logged = _adapter.login(url, username, password)
+        if logged:
+            return jsonify({"success": True, "client_info": client_to_dict(_adapter.get_client())})
         return jsonify({"success": False, "error": "Connexion échouée"}), 401
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/logout', methods=['POST'])
 def logout():
-    global _client
-    _client = None
+    _adapter.logout()
     return jsonify({"success": True})
 
 @app.route('/api/timetable', methods=['GET'])
 def timetable():
-    global _client
-    if not _client or not _client.logged_in:
+    if not _adapter.is_logged_in():
         return jsonify({"error": "Non connecté"}), 401
     try:
         date_from_str = request.args.get('from')
         date_to_str = request.args.get('to')
         date_from = datetime.date.fromisoformat(date_from_str) if date_from_str else datetime.date.today()
         date_to = datetime.date.fromisoformat(date_to_str) if date_to_str else date_from + datetime.timedelta(days=6)
-        lessons = _client.lessons(date_from, date_to)
+        lessons = _adapter.get_lessons(date_from, date_to)
         return jsonify([lesson_to_dict(l) for l in lessons])
     except Exception as e:
         return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
 
 @app.route('/api/homework', methods=['GET'])
 def homework():
-    global _client
-    if not _client or not _client.logged_in:
+    if not _adapter.is_logged_in():
         return jsonify({"error": "Non connecté"}), 401
     try:
         date_from_str = request.args.get('from')
         date_to_str = request.args.get('to')
         date_from = datetime.date.fromisoformat(date_from_str) if date_from_str else datetime.date.today()
         date_to = datetime.date.fromisoformat(date_to_str) if date_to_str else date_from + datetime.timedelta(days=14)
-        hw = _client.homework(date_from, date_to)
+        hw = _adapter.get_homework(date_from, date_to)
         return jsonify([homework_to_dict(h) for h in hw])
     except Exception as e:
         return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
 
 @app.route('/api/periods', methods=['GET'])
 def periods():
-    global _client
-    if not _client or not _client.logged_in:
+    if not _adapter.is_logged_in():
         return jsonify({"error": "Non connecté"}), 401
     try:
-        ps = list(_client.periods)
+        ps = _adapter.get_periods()
         return jsonify([period_to_dict(p) for p in ps])
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/grades', methods=['GET'])
 def grades():
-    global _client
-    if not _client or not _client.logged_in:
+    if not _adapter.is_logged_in():
         return jsonify({"error": "Non connecté"}), 401
     try:
         period_id = request.args.get('period_id')
-        period_name = request.args.get('period_name', '')
-        ps = list(_client.periods)
-        period = next((p for p in ps if str(p.id) == period_id), ps[0] if ps else None)
+        period = get_selected_period(period_id)
         if not period:
             return jsonify([])
         p_dict = period_to_dict(period)
@@ -273,13 +435,11 @@ def grades():
 
 @app.route('/api/averages', methods=['GET'])
 def averages():
-    global _client
-    if not _client or not _client.logged_in:
+    if not _adapter.is_logged_in():
         return jsonify({"error": "Non connecté"}), 401
     try:
         period_id = request.args.get('period_id')
-        ps = list(_client.periods)
-        period = next((p for p in ps if str(p.id) == period_id), ps[0] if ps else None)
+        period = get_selected_period(period_id)
         if not period:
             return jsonify([])
         try:
@@ -292,35 +452,31 @@ def averages():
 
 @app.route('/api/discussions', methods=['GET'])
 def discussions():
-    global _client
-    if not _client or not _client.logged_in:
+    if not _adapter.is_logged_in():
         return jsonify({"error": "Non connecté"}), 401
     try:
-        ds = _client.discussions()
+        ds = _adapter.get_discussions()
         return jsonify([discussion_to_dict(d) for d in ds])
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/informations', methods=['GET'])
 def informations():
-    global _client
-    if not _client or not _client.logged_in:
+    if not _adapter.is_logged_in():
         return jsonify({"error": "Non connecté"}), 401
     try:
-        infos = list(_client.information_and_surveys())
+        infos = _adapter.get_informations()
         return jsonify([info_to_dict(i) for i in infos])
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/absences', methods=['GET'])
 def absences():
-    global _client
-    if not _client or not _client.logged_in:
+    if not _adapter.is_logged_in():
         return jsonify({"error": "Non connecté"}), 401
     try:
         period_id = request.args.get('period_id')
-        ps = list(_client.periods)
-        period = next((p for p in ps if str(p.id) == period_id), ps[0] if ps else None)
+        period = get_selected_period(period_id)
         if not period:
             return jsonify([])
         try:
@@ -344,13 +500,11 @@ def absences():
 
 @app.route('/api/delays', methods=['GET'])
 def delays():
-    global _client
-    if not _client or not _client.logged_in:
+    if not _adapter.is_logged_in():
         return jsonify({"error": "Non connecté"}), 401
     try:
         period_id = request.args.get('period_id')
-        ps = list(_client.periods)
-        period = next((p for p in ps if str(p.id) == period_id), ps[0] if ps else None)
+        period = get_selected_period(period_id)
         if not period:
             return jsonify([])
         try:
