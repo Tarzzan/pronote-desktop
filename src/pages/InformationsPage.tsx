@@ -57,9 +57,11 @@ const InformationsPage: React.FC = () => {
               <button
                 onClick={() => {
                   setExpandedId(expandedId === info.id ? null : info.id);
-                  setInformations((prev) =>
-                    prev.map((i) => (i.id === info.id ? { ...i, read: true } : i))
-                  );
+                  setInformations((prev) => prev.map((i) => (i.id === info.id ? { ...i, read: true } : i)));
+                  const client = getClient();
+                  if (client && !info.read) {
+                    void client.markInformationRead(info.id);
+                  }
                 }}
                 className="w-full text-left p-4 hover:bg-gray-50 transition-colors"
               >

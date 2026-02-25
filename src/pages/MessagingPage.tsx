@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { MessageSquare, Send, Plus, Search, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
 import { getClient } from '../lib/pronote/client';
 import type { Discussion, Message } from '../types/pronote';
 
 const MessagingPage: React.FC = () => {
+  const navigate = useNavigate();
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [selected, setSelected] = useState<Discussion | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,12 +37,19 @@ const MessagingPage: React.FC = () => {
 
   const unreadCount = discussions.filter((d) => d.unread).length;
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!reply.trim() || !selected) return;
+    const client = getClient();
+    if (!client) return;
+
+    const messageContent = reply.trim();
+    const ok = await client.replyDiscussion(selected.id, messageContent);
+    if (!ok) return;
+
     const newMessage: Message = {
       id: Date.now().toString(),
       author: 'Moi',
-      content: reply,
+      content: messageContent,
       date: new Date(),
       seen: true,
     };
@@ -57,6 +66,20 @@ const MessagingPage: React.FC = () => {
     setReply('');
   };
 
+  const handleSelectDiscussion = (discussion: Discussion) => {
+    setSelected(discussion);
+    if (!discussion.unread) return;
+    const client = getClient();
+    if (!client) return;
+    void client.markDiscussionStatus(discussion.id, 'read').then((ok) => {
+      if (!ok) return;
+      setDiscussions((prev) =>
+        prev.map((item) => (item.id === discussion.id ? { ...item, unread: false } : item))
+      );
+      setSelected((prev) => (prev && prev.id === discussion.id ? { ...prev, unread: false } : prev));
+    });
+  };
+
   return (
     <div className="h-full flex flex-col space-y-4">
       {/* En-tête */}
@@ -67,7 +90,10 @@ const MessagingPage: React.FC = () => {
             {unreadCount > 0 ? `${unreadCount} message(s) non lu(s)` : 'Toutes les discussions'}
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors text-sm font-medium">
+        <button
+          onClick={() => navigate('/messaging/new')}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors text-sm font-medium"
+        >
           <Plus className="w-4 h-4" />
           Nouvelle discussion
         </button>
@@ -103,7 +129,7 @@ const MessagingPage: React.FC = () => {
                 filtered.map((d) => (
                   <button
                     key={d.id}
-                    onClick={() => setSelected(d)}
+                    onClick={() => handleSelectDiscussion(d)}
                     className={`w-full text-left p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors ${
                       selected?.id === d.id ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
                     }`}

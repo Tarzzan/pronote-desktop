@@ -30,9 +30,20 @@ const HomeworkPage: React.FC = () => {
   }, []);
 
   const toggleDone = (id: string) => {
-    setHomework((prev) =>
-      prev.map((hw) => (hw.id === id ? { ...hw, done: !hw.done } : hw))
-    );
+    const client = getClient();
+    const current = homework.find((hw) => hw.id === id);
+    if (!current) return;
+    const nextDone = !current.done;
+
+    // Optimistic UI, rollback if backend update fails.
+    setHomework((prev) => prev.map((hw) => (hw.id === id ? { ...hw, done: nextDone } : hw)));
+    if (!client) return;
+
+    void client.setHomeworkDone(id, nextDone).then((ok) => {
+      if (!ok) {
+        setHomework((prev) => prev.map((hw) => (hw.id === id ? { ...hw, done: current.done } : hw)));
+      }
+    });
   };
 
   const filtered = homework.filter((hw) => {

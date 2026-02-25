@@ -118,6 +118,16 @@ export interface Information {
   category: string;
 }
 
+export interface Recipient {
+  id: string;
+  name: string;
+  kind: string;
+}
+
+export interface MenuEntry {
+  [key: string]: unknown;
+}
+
 export interface Attachment {
   name: string;
   id: string;
