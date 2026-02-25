@@ -25,6 +25,7 @@
     "build:all": "node scripts/bump-version.cjs && tsc -b && vite build && electron-builder --linux deb",
     "lint": "eslint .",
     "test:contrast": "node --test scripts/color-contrast.test.cjs",
+    "test:backend-contract": "python3 -m unittest discover -s tests -p 'test_backend_contract.py'",
     "preview": "vite preview",
     "electron": "electron electron/main.cjs",
     "electron:dev": "concurrently \"pnpm dev\" \"wait-on http://localhost:5173 && electron electron/main.cjs\""
