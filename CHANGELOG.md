@@ -13,6 +13,8 @@ et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 - **Reprise en cours de route** : ajout d’un fallback de navigation dans `ErrorBoundary` compatible avec le mode hash (`#/dashboard`) pour éviter un blocage après erreur.
 - **Crash Linux au lancement (`chrome-sandbox` / chemin avec espace)** : ajout d’un wrapper `/usr/bin/pronote-desktop` dans `postinst.sh` qui lance Electron avec `--no-sandbox --disable-gpu --ozone-platform=x11`, puis correction de l’entrée `.desktop` pour utiliser ce wrapper.
 - **Post-install trompeur** : messages de version `v1.7.0` corrigés vers `v1.7.4` dans le script d’installation Debian.
+- **Assets non trouvés en mode packagé** : `vite.config.ts` passe en `base: './'` pour éviter les chemins absolus `/assets/...` qui provoquaient un écran vide avec `file://`.
+- **Preload Electron invalide** : suppression de l’accès à `app.getVersion()` dans `preload.cjs` (non disponible dans ce contexte), ce qui supprimait l’erreur de chargement du preload au démarrage.
 
 ## [1.7.3] — 2026-02-25
 

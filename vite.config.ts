@@ -12,9 +12,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  // base '/' est requis pour que Flask serve correctement les assets depuis /assets/
-  // (base './' génère des chemins relatifs qui cassent quand Flask sert depuis /usr/lib/pronote-desktop/)
-  base: '/',
+  // base relative pour compatibilité Electron packagé (file://.../index.html)
+  // évite les chemins absolus /assets/... qui produisent un écran blanc.
+  base: './',
   define: {
     // Injecter la version depuis package.json pour garantir la cohérence front/package
     __APP_VERSION__: JSON.stringify(pkg.version),

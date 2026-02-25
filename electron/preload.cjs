@@ -5,6 +5,5 @@ contextBridge.exposeInMainWorld('__ELECTRON_SHELL__', {
   openExternal: (url) => shell.openExternal(url),
 });
 
-// Exposer la version de l'application
-const { app } = require('electron');
-contextBridge.exposeInMainWorld('__APP_VERSION__', app.getVersion());
+// Exposer une version côté renderer sans dépendre de app.getVersion() (non dispo ici)
+contextBridge.exposeInMainWorld('__APP_VERSION__', process.versions.electron || 'unknown');
