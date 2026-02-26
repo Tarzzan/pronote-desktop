@@ -41,6 +41,9 @@ jobs:
       - name: Frontend contrast regression tests
         run: pnpm test:contrast
 
+      - name: Frontend UI smoke e2e test
+        run: pnpm test:e2e:ui
+
       - name: Type check
         run: pnpm exec tsc -b --noEmit
 
