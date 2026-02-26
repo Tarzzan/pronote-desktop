@@ -5,6 +5,25 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.7.11] — 2026-02-26
+
+### Ajouté
+- **Couverture fonctionnelle complète des routes UI historiques** : remplacement de toutes les sections restantes en `PlaceholderPage` par des pages opérationnelles (`notes`, `vie scolaire/sanctions`, `forums`, `progressions`, `programmes`, `archives/appreciations bulletins`, `évaluations/bilans compétences`, `livret/récap résultats`, `rencontres`, `casier`).
+- **Nouvelles vues métier** :
+  - Saisie locale des notes et appréciations par matière.
+  - Archivage des bulletins par période.
+  - Synthèses résultats (livret + tableau récapitulatif).
+  - Suivi sanctions, forums pédagogiques, progressions/programmes.
+  - Casier numérique personnel (notes + ressources remontées).
+- **Tests anti-régression routes étendus** : contrôle automatisé des nouvelles routes migrées pour empêcher tout retour vers `PlaceholderPage`.
+
+### Corrigé
+- **Navigation latérale** : ajout des entrées manquantes (`bulletins/appreciations`, `competences/bilans`) pour rendre les nouvelles pages accessibles sans URL manuelle.
+- **Compatibilité TypeScript build** : correction d’un usage non compatible cible (`Array.prototype.at`) dans l’archive des bulletins.
+
+### CI
+- **Pipeline release durci** : le workflow principal exécute désormais explicitement `lint`, `test:routes` et `test:contrast` avant le build Linux, ce qui bloque les régressions frontend en amont des releases.
+
 ## [1.7.10] — 2026-02-26
 
 ### Ajouté
