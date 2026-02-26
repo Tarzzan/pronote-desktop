@@ -1,0 +1,371 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Pronote Desktop Native — Feuille de style GTK4
+   Reproduit le thème bleu marine de l'application React d'origine.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Sidebar ─────────────────────────────────────────────────────── */
+.sidebar {
+    background: linear-gradient(180deg, #1e3a5f 0%, #1e40af 50%, #1d4ed8 100%);
+    min-width: 240px;
+    max-width: 240px;
+}
+
+.sidebar-logo {
+    background: white;
+    color: #1e40af;
+    font-weight: 900;
+    font-size: 20px;
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 10px;
+    padding: 4px 10px;
+}
+
+.sidebar-title {
+    color: white;
+    font-weight: 900;
+    font-size: 13px;
+    letter-spacing: 2px;
+}
+
+.sidebar-version {
+    color: #93c5fd;
+    font-size: 11px;
+    font-family: monospace;
+}
+
+.sidebar-avatar {
+    font-size: 28px;
+}
+
+.sidebar-user-name {
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.sidebar-user-estab {
+    color: #93c5fd;
+    font-size: 11px;
+}
+
+.sidebar-listbox {
+    background: transparent;
+    border: none;
+}
+
+.sidebar-listbox row {
+    background: transparent;
+    border-radius: 8px;
+    margin: 2px 6px;
+}
+
+.sidebar-listbox row:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-listbox row:selected {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-listbox row label {
+    color: #bfdbfe;
+    font-size: 13px;
+}
+
+.sidebar-listbox row:selected label {
+    color: white;
+    font-weight: 600;
+}
+
+.sidebar-icon {
+    color: #93c5fd;
+}
+
+.sidebar-listbox row:selected .sidebar-icon {
+    color: white;
+}
+
+.sidebar-footer-btn {
+    color: #bfdbfe;
+    font-size: 12px;
+    border-radius: 8px;
+}
+
+.sidebar-footer-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.sidebar-footer-btn.destructive-action:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+/* ── Zone de contenu ─────────────────────────────────────────────── */
+.content-area {
+    background: #f8fafc;
+}
+
+.page {
+    background: #f8fafc;
+}
+
+.page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin-bottom: 8px;
+}
+
+.section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e40af;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+/* ── Cartes de résumé (Dashboard) ────────────────────────────────── */
+.summary-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 16px;
+    min-width: 120px;
+}
+
+.card-emoji {
+    font-size: 28px;
+}
+
+.card-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1e40af;
+}
+
+.card-label {
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* ── Listes ──────────────────────────────────────────────────────── */
+.list-row {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    padding: 10px 14px;
+}
+
+.list-row:hover {
+    background: #f1f5f9;
+}
+
+/* ── Page de connexion ───────────────────────────────────────────── */
+.login-page {
+    background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%);
+}
+
+.login-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.login-logo {
+    background: #1e40af;
+    color: white;
+    font-weight: 900;
+    font-size: 32px;
+    min-width: 64px;
+    min-height: 64px;
+    border-radius: 16px;
+    padding: 8px 18px;
+    margin-bottom: 4px;
+}
+
+.login-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e3a5f;
+}
+
+.login-subtitle {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.form-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.form-entry {
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+}
+
+.login-btn {
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.login-error {
+    color: #dc2626;
+    font-size: 13px;
+    background: #fef2f2;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+/* ── Emploi du temps ─────────────────────────────────────────────── */
+.day-group {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+}
+
+.day-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e40af;
+    margin-bottom: 6px;
+}
+
+.lesson-row {
+    background: #f8fafc;
+    border-radius: 6px;
+    padding: 8px 10px;
+    border-left: 3px solid #1d4ed8;
+}
+
+.lesson-time {
+    font-family: monospace;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.lesson-subject {
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.lesson-teacher {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.lesson-room {
+    font-size: 12px;
+    color: #94a3b8;
+    background: #f1f5f9;
+    border-radius: 4px;
+    padding: 2px 6px;
+}
+
+/* ── Notes ───────────────────────────────────────────────────────── */
+.grade-value {
+    font-weight: 700;
+    color: #1e40af;
+    font-size: 15px;
+}
+
+/* ── Devoirs ─────────────────────────────────────────────────────── */
+.hw-subject {
+    font-weight: 600;
+    color: #1e40af;
+    font-size: 13px;
+}
+
+.hw-date {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.hw-date-header {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+/* ── Messagerie ──────────────────────────────────────────────────── */
+.unread-dot {
+    color: #1d4ed8;
+    font-size: 10px;
+}
+
+.read-dot {
+    color: transparent;
+    font-size: 10px;
+}
+
+.msg-creator {
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* ── Absences ────────────────────────────────────────────────────── */
+.justified {
+    color: #16a34a;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.not-justified {
+    color: #dc2626;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* ── Menus ───────────────────────────────────────────────────────── */
+.menu-day {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+}
+
+.meal-name {
+    font-weight: 600;
+    color: #1e40af;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.food-item {
+    font-size: 13px;
+    color: #374151;
+}
+
+/* ── Informations ────────────────────────────────────────────────── */
+.info-title {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 14px;
+}
+
+.info-author {
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* ── Erreurs ─────────────────────────────────────────────────────── */
+.error-label {
+    color: #dc2626;
+    font-size: 13px;
+}
+
+.empty-day {
+    color: #94a3b8;
+    font-size: 13px;
+    font-style: italic;
+}

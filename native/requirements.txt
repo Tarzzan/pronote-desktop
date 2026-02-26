@@ -1,0 +1,11 @@
+# Pronote Desktop Native — Dépendances Python
+# Installation : pip install -r requirements.txt
+
+# Interface graphique GTK4
+PyGObject>=3.44.0
+
+# API Pronote
+pronotepy>=2.12.0
+
+# Requêtes HTTP (mises à jour)
+requests>=2.31.0
