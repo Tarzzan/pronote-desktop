@@ -26,6 +26,7 @@
     "lint": "eslint .",
     "test:contrast": "node --test scripts/color-contrast.test.cjs",
     "test:routes": "node --test scripts/routes-regression.test.cjs",
+    "test:updates": "node --test scripts/update-utils.test.cjs",
     "test:e2e:ui": "node scripts/ui-e2e-smoke.cjs",
     "test:backend-contract": "python3 -m unittest discover -s tests -p 'test_backend_contract.py'",
     "preview": "vite preview",

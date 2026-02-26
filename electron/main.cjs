@@ -4,6 +4,7 @@ const fs = require('fs');
 const https = require('https');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
+const { assertAllowedUrl, buildUpdateInfo: buildUpdateInfoFromRelease } = require('./update-utils.cjs');
 
 // ─── Lecture de la version ────────────────────────────────────────────────────
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
@@ -92,52 +93,8 @@ process.on('uncaughtException', (error) => handleUncaughtError(error, 'uncaughtE
 process.on('unhandledRejection', (reason) => handleUncaughtError(reason, 'unhandledRejection'));
 
 // ─── Mises à jour GitHub ─────────────────────────────────────────────────────
-function normalizeVersion(version) {
-  const cleaned = String(version || '').trim().replace(/^v/i, '').split('-')[0];
-  const parts = cleaned.split('.').map((part) => Number.parseInt(part, 10));
-  if (parts.some((part) => Number.isNaN(part))) return [0, 0, 0];
-  while (parts.length < 3) parts.push(0);
-  return parts.slice(0, 3);
-}
-
-function compareVersions(a, b) {
-  const va = normalizeVersion(a);
-  const vb = normalizeVersion(b);
-  for (let i = 0; i < 3; i += 1) {
-    if (va[i] > vb[i]) return 1;
-    if (va[i] < vb[i]) return -1;
-  }
-  return 0;
-}
-
-function toReleaseVersion(tagOrName) {
-  return String(tagOrName || '').trim().replace(/^v/i, '');
-}
-
-function sanitizeNotes(body) {
-  const text = String(body || '').trim();
-  if (!text) return '';
-  return text.slice(0, 10000);
-}
-
-function assertAllowedUrl(urlString) {
-  let parsed;
-  try {
-    parsed = new URL(urlString);
-  } catch {
-    throw new Error('URL de mise à jour invalide.');
-  }
-  if (parsed.protocol !== 'https:') {
-    throw new Error('URL de mise à jour non sécurisée (HTTPS requis).');
-  }
-  if (!UPDATE_ALLOWED_HOSTS.has(parsed.hostname)) {
-    throw new Error(`Hôte de mise à jour non autorisé: ${parsed.hostname}`);
-  }
-  return parsed;
-}
-
 function requestJson(urlString, redirectCount = 0) {
-  assertAllowedUrl(urlString);
+  assertAllowedUrl(urlString, UPDATE_ALLOWED_HOSTS);
   if (redirectCount > 5) {
     return Promise.reject(new Error('Trop de redirections pendant la vérification des mises à jour.'));
   }
@@ -180,45 +137,12 @@ function requestJson(urlString, redirectCount = 0) {
   });
 }
 
-function selectReleaseAsset(release) {
-  const assets = Array.isArray(release?.assets) ? release.assets : [];
-  const debAssets = assets.filter((asset) =>
-    typeof asset?.name === 'string' &&
-    asset.name.endsWith('.deb') &&
-    typeof asset.browser_download_url === 'string');
-
-  if (process.platform !== 'linux') return null;
-
-  const archToken = process.arch === 'x64' ? 'amd64' : process.arch;
-  const exact = debAssets.find((asset) => asset.name.includes(`_${archToken}.deb`));
-  if (exact) return exact;
-  if (debAssets.length === 1) return debAssets[0];
-  return null;
-}
-
 function buildUpdateInfo(release) {
-  const latestVersion = toReleaseVersion(release?.tag_name || release?.name);
-  const asset = selectReleaseAsset(release);
-  const hasUpdate = compareVersions(latestVersion, APP_VERSION) > 0;
-
-  return {
+  return buildUpdateInfoFromRelease(release, {
     currentVersion: APP_VERSION,
-    latestVersion,
-    hasUpdate,
-    releaseName: String(release?.name || ''),
-    releaseUrl: String(release?.html_url || ''),
-    publishedAt: String(release?.published_at || ''),
-    notes: sanitizeNotes(release?.body),
-    asset: asset ? {
-      name: String(asset.name),
-      size: Number(asset.size || 0),
-      downloadUrl: String(asset.browser_download_url),
-      digest: typeof asset.digest === 'string' ? asset.digest : null,
-    } : null,
-    unsupportedReason: process.platform !== 'linux'
-      ? `Mise à jour automatique non supportée sur ${process.platform}.`
-      : null,
-  };
+    platform: process.platform,
+    arch: process.arch,
+  });
 }
 
 function emitUpdateProgress(payload) {
@@ -235,7 +159,7 @@ async function checkForUpdates() {
 }
 
 function downloadFileWithProgress(urlString, filePath, onProgress, redirectCount = 0) {
-  assertAllowedUrl(urlString);
+  assertAllowedUrl(urlString, UPDATE_ALLOWED_HOSTS);
   if (redirectCount > 5) {
     return Promise.reject(new Error('Trop de redirections pendant le téléchargement.'));
   }

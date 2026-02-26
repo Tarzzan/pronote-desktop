@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.7.5-blue?style=flat-square"/>
+  <img src="https://img.shields.io/github/v/release/Tarzzan/pronote-desktop?style=flat-square"/>
   <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey?style=flat-square"/>
   <img src="https://img.shields.io/badge/electron-40.x-47848F?style=flat-square&logo=electron"/>
   <img src="https://img.shields.io/badge/react-19.x-61DAFB?style=flat-square&logo=react"/>
@@ -44,9 +44,9 @@
 
 ### État du projet
 
-- Reprise en cours de route et stabilisation active jusqu'à la version `1.7.5`.
-- Incident rencontré pendant la reprise: erreur de build locale `Cannot find native binding` (Tailwind Oxide optionnel manquant), documentée dans le changelog et adressée dans la configuration du projet.
-- Incident runtime Linux rencontré pendant la reprise: fenêtre blanche/crash Chromium (`file://`, sandbox, GPU). Correctifs livrés en `1.7.4` (router Electron, base API, wrapper de lancement Debian).
+- Stabilisation active et tests de non-régression automatisés jusqu'à la version `1.7.11`.
+- Correctifs runtime Linux livrés: anti-crash GPU, vérification backend, smoke test de déploiement, et parcours UI e2e.
+- La mise à jour intégrée (depuis Paramètres) vérifie les releases GitHub et propose l'installation automatique du paquet `.deb` compatible.
 
 ---
 
@@ -73,10 +73,13 @@
 
 ```bash
 # Télécharger la derniere release depuis GitHub
-wget https://github.com/Tarzzan/pronote-desktop/releases/latest/download/pronote-desktop_1.7.5_amd64.deb
+ASSET_URL="$(curl -fsSL https://api.github.com/repos/Tarzzan/pronote-desktop/releases/latest \
+  | grep -Eo 'https://[^"]+_amd64\.deb' \
+  | head -n 1)"
+wget -O pronote-desktop_latest_amd64.deb "$ASSET_URL"
 
 # Installer le paquet
-sudo dpkg -i pronote-desktop_1.7.5_amd64.deb
+sudo dpkg -i pronote-desktop_latest_amd64.deb
 
 # Résoudre les dépendances si nécessaire
 sudo apt-get install -f
@@ -208,7 +211,7 @@ Vous pouvez également [ouvrir une Issue manuellement](https://github.com/Tarzza
 
 Le fichier `.github/workflows/build.yml` déclenche automatiquement :
 
-- Sur chaque `push` sur `main` : vérification TypeScript + build du `.deb`
+- Sur chaque `push` sur `main` : lint, tests routes/contraste/updater, smoke e2e UI, tests backend + build du `.deb`
 - Sur chaque tag `v*` (ex: `git tag v1.3.0`) : création d'une Release GitHub avec le `.deb` en pièce jointe
 
 ---

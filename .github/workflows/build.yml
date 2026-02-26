@@ -41,6 +41,9 @@ jobs:
       - name: Frontend contrast regression tests
         run: pnpm test:contrast
 
+      - name: Updater regression tests
+        run: pnpm test:updates
+
       - name: Frontend UI smoke e2e test
         run: pnpm test:e2e:ui
 
