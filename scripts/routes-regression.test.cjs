@@ -83,6 +83,27 @@ test('sidebar keeps access to new homework entries', () => {
   assert.match(sidebarSource, /path:\s*'\/competences\/bilans'/, 'missing sidebar link for competences bilans');
 });
 
+test('sidebar does not contain duplicate route paths', () => {
+  const routePathMatches = [...sidebarSource.matchAll(/path:\s*'([^']+)'/g)];
+  const counts = new Map();
+
+  for (const match of routePathMatches) {
+    const routePath = match[1];
+    counts.set(routePath, (counts.get(routePath) || 0) + 1);
+  }
+
+  const duplicates = [...counts.entries()].filter(([, count]) => count > 1);
+  assert.deepEqual(duplicates, [], `duplicate sidebar paths found: ${JSON.stringify(duplicates)}`);
+});
+
+test('sidebar leaf links use exact matching to avoid dual active state', () => {
+  assert.match(
+    sidebarSource,
+    /<NavLink[\s\S]*?to=\{item\.path \|\| '#'\}[\s\S]*?end=\{Boolean\(item\.path\)\}/m,
+    'Sidebar NavLink should use exact matching for leaf routes'
+  );
+});
+
 test('App no longer routes any feature page to PlaceholderPage', () => {
   assert.doesNotMatch(
     appSource,

@@ -257,6 +257,49 @@ async function ensureSidebarLinkVisible(page, sectionRegex, linkRegex) {
   return link;
 }
 
+function getSidebarLinkByPath(page, path) {
+  return page.locator(`aside nav a[href="${path}"], aside nav a[href="#${path}"]`).first();
+}
+
+async function ensureSidebarPathLinkVisible(page, sectionRegex, path) {
+  const link = getSidebarLinkByPath(page, path);
+  if (await link.isVisible().catch(() => false)) {
+    return link;
+  }
+  await page.getByRole('button', { name: sectionRegex }).first().click();
+  await link.waitFor({ state: 'visible', timeout: 10_000 });
+  return link;
+}
+
+async function assertExclusiveActiveSidebarPaths(page, activePath, inactivePaths) {
+  const waitForActiveState = async (path, expectedActive) => {
+    const started = Date.now();
+    let lastClass = '';
+    while (Date.now() - started < 5000) {
+      const className = String(await getSidebarLinkByPath(page, path).getAttribute('class') || '');
+      lastClass = className;
+      const isActive = className.includes('bg-white/20');
+      if (isActive === expectedActive) return className;
+      await sleep(80);
+    }
+    return lastClass;
+  };
+
+  const activeClass = await waitForActiveState(activePath, true);
+  assert.ok(
+    String(activeClass || '').includes('bg-white/20'),
+    `expected "${activePath}" to be active in sidebar (class="${String(activeClass || '')}")`
+  );
+
+  for (const path of inactivePaths) {
+    const className = await waitForActiveState(path, false);
+    assert.ok(
+      !String(className || '').includes('bg-white/20'),
+      `expected "${path}" to be inactive in sidebar (class="${String(className || '')}")`
+    );
+  }
+}
+
 async function fillLoginForm(page) {
   await page.locator('input[type="url"]').first().fill('https://demo.index-education.net/pronote/professeur.html');
   await page.locator('input[type="text"]').first().fill('demonstration');
@@ -308,11 +351,60 @@ async function run() {
       await homeworkLink.click();
       await page.waitForURL(/\/homework$/, { timeout: 10_000 });
       await assertHeadingVisible(page, /Cahier de textes/i);
+      await assertExclusiveActiveSidebarPaths(page, '/homework', ['/homework/edit']);
+
+      const homeworkEditLink = await ensureSidebarPathLinkVisible(page, /Cahier de textes/i, '/homework/edit');
+      await homeworkEditLink.click();
+      await page.waitForURL(/\/homework\/edit$/, { timeout: 10_000 });
+      await assertHeadingVisible(page, /Saisie des devoirs/i);
+      await assertExclusiveActiveSidebarPaths(page, '/homework/edit', ['/homework']);
+
+      await homeworkLink.click();
+      await page.waitForURL(/\/homework$/, { timeout: 10_000 });
+      await assertHeadingVisible(page, /Cahier de textes/i);
+      await assertExclusiveActiveSidebarPaths(page, '/homework', ['/homework/edit']);
+
+      const gradesEditLink = await ensureSidebarPathLinkVisible(page, /Notes/i, '/grades/edit');
+      await gradesEditLink.click();
+      await page.waitForURL(/\/grades\/edit$/, { timeout: 10_000 });
+      await assertHeadingVisible(page, /Saisie des notes/i);
+      await assertExclusiveActiveSidebarPaths(page, '/grades/edit', ['/grades']);
+
+      const gradesLink = await ensureSidebarPathLinkVisible(page, /Notes/i, '/grades');
+      await gradesLink.click();
+      await page.waitForURL(/\/grades$/, { timeout: 10_000 });
+      await assertHeadingVisible(page, /Notes/i);
+      await assertExclusiveActiveSidebarPaths(page, '/grades', ['/grades/edit']);
 
       const discussionsLink = await ensureSidebarLinkVisible(page, /Communication/i, /Discussions/i);
       await discussionsLink.click();
       await page.waitForURL(/\/messaging$/, { timeout: 10_000 });
       await assertHeadingVisible(page, /Messagerie/i);
+      await assertExclusiveActiveSidebarPaths(page, '/messaging', ['/messaging/new']);
+
+      const newMessageLink = await ensureSidebarPathLinkVisible(page, /Communication/i, '/messaging/new');
+      await newMessageLink.click();
+      await page.waitForURL(/\/messaging\/new$/, { timeout: 10_000 });
+      await assertHeadingVisible(page, /Nouveau message/i);
+      await assertExclusiveActiveSidebarPaths(page, '/messaging/new', ['/messaging']);
+
+      const attendanceCallLink = await ensureSidebarPathLinkVisible(page, /Vie scolaire/i, '/attendance/call');
+      await attendanceCallLink.click();
+      await page.waitForURL(/\/attendance\/call$/, { timeout: 10_000 });
+      await assertHeadingVisible(page, /Appel de présence/i);
+      await assertExclusiveActiveSidebarPaths(page, '/attendance/call', ['/attendance']);
+
+      const attendanceLink = await ensureSidebarPathLinkVisible(page, /Vie scolaire/i, '/attendance');
+      await attendanceLink.click();
+      await page.waitForURL(/\/attendance$/, { timeout: 10_000 });
+      await assertHeadingVisible(page, /Vie scolaire/i);
+      await assertExclusiveActiveSidebarPaths(page, '/attendance', ['/attendance/call']);
+
+      const timetableMultiLink = await ensureSidebarPathLinkVisible(page, /Mes données/i, '/timetable/multi');
+      await timetableMultiLink.click();
+      await page.waitForURL(/\/timetable\/multi$/, { timeout: 10_000 });
+      await assertHeadingVisible(page, /Planning multisemaine/i);
+      await assertExclusiveActiveSidebarPaths(page, '/timetable/multi', ['/timetable']);
 
       await page.getByRole('link', { name: /Paramètres/i }).click();
       await page.waitForURL(/\/settings$/, { timeout: 10_000 });

@@ -201,7 +201,6 @@ const menuItems: MenuItem[] = [
     label: 'Emploi du temps',
     icon: <IconCalendar />,
     children: [
-      { id: 'edt-perso', label: 'Mon emploi du temps', icon: <IconCalendar />, path: '/timetable' },
       { id: 'salles', label: 'Recherche de salles', icon: <IconBriefcase />, path: '/rooms' },
     ],
   },
@@ -267,6 +266,7 @@ const SidebarItem: React.FC<{ item: MenuItem; depth?: number }> = ({ item, depth
   return (
     <NavLink
       to={item.path || '#'}
+      end={Boolean(item.path)}
       className={({ isActive }) =>
         `flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
           isActive
