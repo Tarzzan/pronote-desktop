@@ -9,7 +9,7 @@
     <img src="https://img.shields.io/github/v/release/Tarzzan/pronote-desktop?style=for-the-badge&color=e94560&label=Version" alt="Version"/>
   </a>
   <a href="https://github.com/Tarzzan/pronote-desktop/releases">
-    <img src="https://img.shields.io/github/downloads/Tarzzan/pronote-desktop/total?style=for-the-badge&color=f5a623&label=Téléchargements" alt="Téléchargements"/>
+    <img src="https://img.shields.io/github/downloads/Tarzzan/pronote-desktop/total?style=for-the-badge&color=f5a623&label=T%C3%A9l%C3%A9chargements" alt="Téléchargements"/>
   </a>
   <a href="https://github.com/Tarzzan/pronote-desktop/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/Tarzzan/pronote-desktop?style=for-the-badge&color=a8d8ea&label=Licence" alt="Licence"/>
