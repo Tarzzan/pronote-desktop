@@ -5,6 +5,24 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.7.10] — 2026-02-26
+
+### Ajouté
+- **Remplacement de placeholders par des pages fonctionnelles** :
+  - `Emploi du temps > Planning multisemaine` (`/timetable/multi`)
+  - `Cahier de textes > Planning` (`/homework/planning`)
+  - `Cahier de textes > Contrôles/examens` (`/homework/exams`)
+  - `Cahier de textes > Récapitulatif` (`/homework/summary`)
+  - `Cahier de textes > Contenu des cours` (`/homework/content`)
+  - `Liste des élèves` / `Trombinoscope` / `Ressources élèves`
+  - `Liste des professeurs` / `Ressources professeurs`
+  - `Recherche de salles`
+- **Couverture anti-régression routes UI** : nouveau test `pnpm test:routes` qui vérifie que les routes critiques restent branchées sur des pages réelles (et pas sur `PlaceholderPage`) avec contrôle des imports lazy et des liens sidebar associés.
+
+### Corrigé
+- **Navigation cahier de textes** : ajout explicite des entrées menu pour `Contenu des cours` et `Contrôles/examens` afin d’éviter des fonctionnalités uniquement accessibles par URL.
+- **Version applicative synchronisée** : alignement des versions `package.json`, `pronote_api.py` et `postinst.sh` sur `1.7.10`.
+
 ## [1.7.9] — 2026-02-25
 
 ### Ajouté
