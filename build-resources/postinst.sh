@@ -1,5 +1,5 @@
 #!/bin/bash
-# Post-installation script for pronote-desktop v1.7.12 (offline)
+# Post-installation script for pronote-desktop v1.7.13 (offline)
 # Installation 100% hors-ligne — aucun appel réseau effectué
 # Compatible Ubuntu 22.04 (Python 3.10/3.11) et Ubuntu 24.04 (Python 3.12+)
 set -e
@@ -12,7 +12,7 @@ CONFIG_DIR="/etc/pronote-desktop"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 
 echo "============================================"
-echo " Pronote Desktop v1.7.12 — Installation"
+echo " Pronote Desktop v1.7.13 — Installation"
 echo "============================================"
 
 # --- 1. Icônes et bureau ---
@@ -26,7 +26,7 @@ mkdir -p "$CONFIG_DIR"
 if [ ! -f "$CONFIG_FILE" ]; then
     cat > "$CONFIG_FILE" << 'CONFIG'
 {
-  "version": "1.7.12",
+  "version": "1.7.13",
   "theme": "light",
   "check_updates": true,
   "api_port": 5174,
@@ -264,7 +264,7 @@ fi
 
 echo ""
 echo "============================================"
-echo " Pronote Desktop v1.7.12 installé !"
+echo " Pronote Desktop v1.7.13 installé !"
 echo " Lancez l'application :"
 echo "   • Menu Applications > Éducation"
 echo "   • Commande : pronote-desktop"

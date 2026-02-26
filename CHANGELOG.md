@@ -5,6 +5,18 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.7.13] — 2026-02-26
+
+### Corrigé
+- **Anciens bulletins (`/bulletins/archive`)** : correction d’un cas de répétition apparente quand plusieurs périodes partagent un identifiant ambigu côté source.
+- **Sélection de période backend** : durcissement de `get_selected_period` avec résolution multi-critères (`period_id`, puis `period_name`, puis bornes `period_start/period_end`) pour éviter le renvoi systématique de la première période en cas d’ID non discriminant.
+- **Requêtes frontend par période** : le client envoie maintenant les métadonnées complètes de période (id + nom + dates) pour `grades`, `averages`, `absences` et `delays`.
+- **Rendu archive robuste** : les entrées d’archive utilisent une clé stable non limitée à `period.id`, empêchant les collisions visuelles quand les IDs ne sont pas uniques.
+
+### Amélioré
+- **Signal utilisateur explicite** : ajout d’un message informatif quand toutes les périodes exposent exactement le même snapshot de notes (cas possible sur certaines données de démonstration), afin d’éviter un comportement trompeur.
+- **Anti-régression** : nouveaux tests backend et route-regression couvrant la collision d’identifiants de période et la robustesse du rendu archive.
+
 ## [1.7.12] — 2026-02-26
 
 ### Ajouté
