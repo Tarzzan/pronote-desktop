@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=PRONOTE Desktop
+Name[fr]=PRONOTE Desktop
+Comment=Application native PRONOTE pour Linux
+Comment[fr]=Application native PRONOTE pour Linux
+Exec=python3 /opt/pronote-desktop-native/main.py
+Icon=pronote-desktop
+Terminal=false
+Type=Application
+Categories=Education;Network;
+Keywords=pronote;école;notes;devoirs;emploi du temps;
+StartupNotify=true
+StartupWMClass=pronote-desktop-native
