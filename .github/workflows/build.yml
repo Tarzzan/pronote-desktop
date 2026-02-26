@@ -11,7 +11,7 @@ on:
 jobs:
   # ─── Job : Lint & Tests ────────────────────────────────────────────────────
   lint:
-    name: Lint, Type Check & Backend Contracts
+    name: Frontend/Backend Guardrails
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,6 +31,15 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Frontend route regression tests
+        run: pnpm test:routes
+
+      - name: Frontend contrast regression tests
+        run: pnpm test:contrast
 
       - name: Type check
         run: pnpm exec tsc -b --noEmit
