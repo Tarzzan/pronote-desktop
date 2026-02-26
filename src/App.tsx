@@ -8,8 +8,13 @@ import ErrorBoundary from "./components/ErrorBoundary";
 
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const TimetablePage = lazy(() => import("./pages/TimetablePage"));
+const TimetableMultiPage = lazy(() => import("./pages/TimetableMultiPage"));
 const GradesPage = lazy(() => import("./pages/GradesPage"));
 const HomeworkPage = lazy(() => import("./pages/HomeworkPage"));
+const HomeworkPlanningPage = lazy(() => import("./pages/HomeworkPlanningPage"));
+const HomeworkExamsPage = lazy(() => import("./pages/HomeworkExamsPage"));
+const HomeworkSummaryPage = lazy(() => import("./pages/HomeworkSummaryPage"));
+const HomeworkContentPage = lazy(() => import("./pages/HomeworkContentPage"));
 const MessagingPage = lazy(() => import("./pages/MessagingPage"));
 const AttendancePage = lazy(() => import("./pages/AttendancePage"));
 const InformationsPage = lazy(() => import("./pages/InformationsPage"));
@@ -18,6 +23,9 @@ const PlaceholderPage = lazy(() => import("./pages/PlaceholderPage"));
 const BulletinsPage = lazy(() => import("./pages/BulletinsPage"));
 const CompetencesPage = lazy(() => import("./pages/CompetencesPage"));
 const QCMPage = lazy(() => import("./pages/QCMPage"));
+const StudentsPage = lazy(() => import("./pages/StudentsPage"));
+const TeachersPage = lazy(() => import("./pages/TeachersPage"));
+const RoomsPage = lazy(() => import("./pages/RoomsPage"));
 const AttendanceCallPage = lazy(() => import("./pages/AttendanceCallPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const NewMessagePage = lazy(() => import("./pages/NewMessagePage"));
@@ -179,16 +187,16 @@ const App: React.FC = () => {
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="timetable" element={<TimetablePage />} />
-              <Route path="timetable/multi" element={<PlaceholderPage />} />
+              <Route path="timetable/multi" element={<TimetableMultiPage />} />
               <Route path="grades" element={<GradesPage />} />
               <Route path="grades/edit" element={<PlaceholderPage />} />
               <Route path="grades/appreciations" element={<PlaceholderPage />} />
               <Route path="homework" element={<HomeworkPage />} />
               <Route path="homework/edit" element={<HomeworkEditPage />} />
-              <Route path="homework/planning" element={<PlaceholderPage />} />
-              <Route path="homework/exams" element={<PlaceholderPage />} />
-              <Route path="homework/summary" element={<PlaceholderPage />} />
-              <Route path="homework/content" element={<PlaceholderPage />} />
+              <Route path="homework/planning" element={<HomeworkPlanningPage />} />
+              <Route path="homework/exams" element={<HomeworkExamsPage />} />
+              <Route path="homework/summary" element={<HomeworkSummaryPage />} />
+              <Route path="homework/content" element={<HomeworkContentPage />} />
               <Route path="messaging" element={<MessagingPage />} />
               <Route path="attendance" element={<AttendancePage />} />
               <Route path="attendance/call" element={<AttendanceCallPage />} />
@@ -196,11 +204,11 @@ const App: React.FC = () => {
               <Route path="informations" element={<InformationsPage />} />
               <Route path="services" element={<MenusPage />} />
               <Route path="menus" element={<MenusPage />} />
-              <Route path="students" element={<PlaceholderPage />} />
-              <Route path="trombinoscope" element={<PlaceholderPage />} />
-              <Route path="teachers" element={<PlaceholderPage />} />
-              <Route path="resources/students" element={<PlaceholderPage />} />
-              <Route path="resources/teachers" element={<PlaceholderPage />} />
+              <Route path="students" element={<StudentsPage />} />
+              <Route path="trombinoscope" element={<StudentsPage />} />
+              <Route path="teachers" element={<TeachersPage />} />
+              <Route path="resources/students" element={<StudentsPage />} />
+              <Route path="resources/teachers" element={<TeachersPage />} />
               <Route path="qcm" element={<QCMPage />} />
               <Route path="forums" element={<PlaceholderPage />} />
               <Route path="progressions" element={<PlaceholderPage />} />
@@ -215,7 +223,7 @@ const App: React.FC = () => {
               <Route path="results/livret" element={<PlaceholderPage />} />
               <Route path="results/summary" element={<PlaceholderPage />} />
               <Route path="meetings" element={<PlaceholderPage />} />
-              <Route path="rooms" element={<PlaceholderPage />} />
+              <Route path="rooms" element={<RoomsPage />} />
               <Route path="casier" element={<PlaceholderPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="messaging/new" element={<NewMessagePage />} />

@@ -131,7 +131,9 @@ const menuItems: MenuItem[] = [
     children: [
       { id: 'cdt-taf', label: 'Travail à faire', icon: <IconBook />, path: '/homework' },
       { id: 'cdt-saisie', label: 'Saisie', icon: <IconFile />, path: '/homework/edit' },
+      { id: 'cdt-content', label: 'Contenu des cours', icon: <IconFile />, path: '/homework/content' },
       { id: 'cdt-planning', label: 'Planning', icon: <IconCalendar />, path: '/homework/planning' },
+      { id: 'cdt-exams', label: 'Contrôles/examens', icon: <IconAward />, path: '/homework/exams' },
       { id: 'cdt-recap', label: 'Récapitulatif', icon: <IconChart />, path: '/homework/summary' },
     ],
   },
