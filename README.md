@@ -13,6 +13,23 @@
 
 <br/>
 
+<!-- Bouton de téléchargement principal -->
+<div align="center">
+
+  <a href="https://github.com/Tarzzan/pronote-desktop/releases/download/v1.7.13/pronote-desktop_1.7.13_amd64.deb">
+    <img src="https://img.shields.io/badge/⬇️_Télécharger_v1.7.13-.deb_102.9_MB-e94560?style=for-the-badge&logo=linux&logoColor=white" alt="Télécharger le .deb"/>
+  </a>
+
+  <a href="https://github.com/Tarzzan/pronote-desktop/releases/latest">
+    <img src="https://img.shields.io/badge/Toutes_les_versions-GitHub_Releases-0f3460?style=for-the-badge&logo=github" alt="Toutes les releases"/>
+  </a>
+
+  <br/><sub>🐧 Ubuntu 22.04 / 24.04 · Debian 11+ · amd64 · 102.9 MB</sub>
+
+</div>
+
+<br/>
+
 <!-- Séparateur visuel -->
 <img src="https://files.manuscdn.com/user_upload_by_module/session_file/92503813/prmnAepEdDPLcabJ.svg" alt="Séparateur"/>
 
