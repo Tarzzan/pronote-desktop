@@ -27,7 +27,7 @@ CREDENTIALS_FILE = Path.home() / ".config" / "pronote-desktop" / "credentials.js
 PROFILE_URL_MAP = {
     "eleve.html":      ("student",  pronotepy.Client),
     "parent.html":     ("parent",   pronotepy.ParentClient),
-    "professeur.html": ("teacher",  pronotepy.TeacherClient),
+    "professeur.html": ("teacher",  pronotepy.TeachingStaff),
 }
 
 
