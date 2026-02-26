@@ -479,11 +479,76 @@ def menu_to_dict(menu: Any) -> dict:
     return {"value": payload}
 
 
-def get_selected_period(period_id: Optional[str]) -> Any:
+def get_selected_period(
+    period_id: Optional[str],
+    period_name: Optional[str] = None,
+    period_start: Optional[str] = None,
+    period_end: Optional[str] = None,
+) -> Any:
     periods = _adapter.get_periods()
     if not periods:
         return None
-    return next((p for p in periods if str(getattr(p, 'id', '')) == str(period_id)), periods[0])
+
+    target_id = str(period_id).strip() if period_id is not None else ""
+    target_name = str(period_name).strip().lower() if period_name else ""
+    target_start = str(period_start).strip() if period_start else ""
+    target_end = str(period_end).strip() if period_end else ""
+
+    def period_id_value(period: Any) -> str:
+        return str(getattr(period, "id", "")).strip()
+
+    def period_name_value(period: Any) -> str:
+        return str(getattr(period, "name", "")).strip().lower()
+
+    def period_start_value(period: Any) -> str:
+        start = getattr(period, "start", None)
+        if start is None:
+            return ""
+        if hasattr(start, "isoformat"):
+            try:
+                return str(start.isoformat())
+            except Exception:
+                return str(start)
+        return str(start)
+
+    def period_end_value(period: Any) -> str:
+        end = getattr(period, "end", None)
+        if end is None:
+            return ""
+        if hasattr(end, "isoformat"):
+            try:
+                return str(end.isoformat())
+            except Exception:
+                return str(end)
+        return str(end)
+
+    candidates = periods
+    if target_id:
+        by_id = [p for p in periods if period_id_value(p) == target_id]
+        if len(by_id) == 1:
+            return by_id[0]
+        if by_id:
+            candidates = by_id
+
+    if target_name:
+        by_name = [p for p in candidates if period_name_value(p) == target_name]
+        if len(by_name) == 1:
+            return by_name[0]
+        if by_name:
+            candidates = by_name
+
+    if target_start or target_end:
+        by_dates = [
+            p for p in candidates
+            if (not target_start or period_start_value(p) == target_start)
+            and (not target_end or period_end_value(p) == target_end)
+        ]
+        if len(by_dates) == 1:
+            return by_dates[0]
+        if by_dates:
+            candidates = by_dates
+
+    return candidates[0] if candidates else periods[0]
 
 
 # ─── Routes ───────────────────────────────────────────────────────────────────
@@ -602,7 +667,10 @@ def grades():
         return jsonify({"error": "Non connecté"}), 401
     try:
         period_id = request.args.get('period_id')
-        period = get_selected_period(period_id)
+        period_name = request.args.get('period_name')
+        period_start = request.args.get('period_start')
+        period_end = request.args.get('period_end')
+        period = get_selected_period(period_id, period_name, period_start, period_end)
         if not period:
             return jsonify([])
         p_dict = period_to_dict(period)
@@ -620,7 +688,10 @@ def averages():
         return jsonify({"error": "Non connecté"}), 401
     try:
         period_id = request.args.get('period_id')
-        period = get_selected_period(period_id)
+        period_name = request.args.get('period_name')
+        period_start = request.args.get('period_start')
+        period_end = request.args.get('period_end')
+        period = get_selected_period(period_id, period_name, period_start, period_end)
         if not period:
             return jsonify([])
         try:
@@ -781,7 +852,10 @@ def absences():
         return jsonify({"error": "Non connecté"}), 401
     try:
         period_id = request.args.get('period_id')
-        period = get_selected_period(period_id)
+        period_name = request.args.get('period_name')
+        period_start = request.args.get('period_start')
+        period_end = request.args.get('period_end')
+        period = get_selected_period(period_id, period_name, period_start, period_end)
         if not period:
             return jsonify([])
         try:
@@ -809,7 +883,10 @@ def delays():
         return jsonify({"error": "Non connecté"}), 401
     try:
         period_id = request.args.get('period_id')
-        period = get_selected_period(period_id)
+        period_name = request.args.get('period_name')
+        period_start = request.args.get('period_start')
+        period_end = request.args.get('period_end')
+        period = get_selected_period(period_id, period_name, period_start, period_end)
         if not period:
             return jsonify([])
         try:

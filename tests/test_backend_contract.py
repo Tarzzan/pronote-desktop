@@ -544,6 +544,77 @@ class BackendRoutesContractTests(unittest.TestCase):
         fallback = self.api.get_selected_period("missing")
         self.assertEqual(fallback.id, "p1")
 
+    def test_get_selected_period_uses_name_when_ids_collide(self):
+        period_a = types.SimpleNamespace(id="dup", name="Trimestre 1", start=dt.date(2026, 1, 1), end=dt.date(2026, 3, 31))
+        period_b = types.SimpleNamespace(id="dup", name="Trimestre 2", start=dt.date(2026, 4, 1), end=dt.date(2026, 6, 30))
+        self.api._adapter = DummyAdapter(logged_in=True, periods=[period_a, period_b])
+
+        picked = self.api.get_selected_period("dup", "Trimestre 2")
+        self.assertEqual(picked.name, "Trimestre 2")
+
+    def test_grades_endpoint_uses_period_name_when_ids_collide(self):
+        subject = types.SimpleNamespace(id="mat-001", name="Mathématiques")
+        grade_a = types.SimpleNamespace(
+            id="g-a",
+            grade="10",
+            out_of="20",
+            default_out_of="20",
+            date=dt.date(2026, 2, 3),
+            subject=subject,
+            average="10",
+            max="14",
+            min="7",
+            coefficient="1",
+            comment="T1",
+            is_bonus=False,
+            is_optionnal=False,
+            is_out_of_20=True,
+        )
+        grade_b = types.SimpleNamespace(
+            id="g-b",
+            grade="18",
+            out_of="20",
+            default_out_of="20",
+            date=dt.date(2026, 5, 15),
+            subject=subject,
+            average="16",
+            max="19",
+            min="8",
+            coefficient="1",
+            comment="T2",
+            is_bonus=False,
+            is_optionnal=False,
+            is_out_of_20=True,
+        )
+        period_a = types.SimpleNamespace(
+            id="dup",
+            name="Trimestre 1",
+            start=dt.date(2026, 1, 1),
+            end=dt.date(2026, 3, 31),
+            grades=[grade_a],
+            averages=[],
+            absences=[],
+            delays=[],
+        )
+        period_b = types.SimpleNamespace(
+            id="dup",
+            name="Trimestre 2",
+            start=dt.date(2026, 4, 1),
+            end=dt.date(2026, 6, 30),
+            grades=[grade_b],
+            averages=[],
+            absences=[],
+            delays=[],
+        )
+        self.api._adapter = DummyAdapter(logged_in=True, periods=[period_a, period_b])
+
+        response = self.client.get("/api/grades?period_id=dup&period_name=Trimestre%202")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]["id"], "g-b")
+        self.assertEqual(body[0]["period"]["name"], "Trimestre 2")
+
     def test_grades_requires_authentication(self):
         self.api._adapter = DummyAdapter(logged_in=False)
         response = self.client.get("/api/grades")

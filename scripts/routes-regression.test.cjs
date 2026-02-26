@@ -5,9 +5,11 @@ const test = require('node:test');
 
 const appPath = path.join(__dirname, '..', 'src', 'App.tsx');
 const sidebarPath = path.join(__dirname, '..', 'src', 'components', 'layout', 'Sidebar.tsx');
+const bulletinsArchivePath = path.join(__dirname, '..', 'src', 'pages', 'BulletinsArchivePage.tsx');
 
 const appSource = fs.readFileSync(appPath, 'utf8');
 const sidebarSource = fs.readFileSync(sidebarPath, 'utf8');
+const bulletinsArchiveSource = fs.readFileSync(bulletinsArchivePath, 'utf8');
 
 const routeExpectations = [
   ['timetable/multi', 'TimetableMultiPage'],
@@ -109,5 +111,23 @@ test('App no longer routes any feature page to PlaceholderPage', () => {
     appSource,
     /<Route\s+path="(grades\/edit|grades\/appreciations|attendance\/sanctions|forums|progressions|programs|bulletins\/appreciations|bulletins\/archive|competences\/evaluations|competences\/bilans|results\/livret|results\/summary|meetings|casier)"\s+element=\{<PlaceholderPage\s*\/>\}\s*\/>/m,
     'a migrated route still points to PlaceholderPage'
+  );
+});
+
+test('bulletins archive handles non-unique period ids without collapsing sections', () => {
+  assert.match(
+    bulletinsArchiveSource,
+    /buildPeriodEntryKey\(/,
+    'BulletinsArchivePage should build a stable per-entry key'
+  );
+  assert.match(
+    bulletinsArchiveSource,
+    /setOpened\(archive\[0\]\?\.key \?\? null\)/,
+    'BulletinsArchivePage should track open state with entry key, not period.id'
+  );
+  assert.match(
+    bulletinsArchiveSource,
+    /allPeriodsShareSameSnapshot/,
+    'BulletinsArchivePage should expose a user-facing hint when source data is identical across periods'
   );
 });

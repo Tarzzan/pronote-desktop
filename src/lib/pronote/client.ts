@@ -236,10 +236,23 @@ export class PronoteClient {
     return periods;
   }
 
+  private buildPeriodQuery(period: Period): string {
+    const params = new URLSearchParams();
+    params.set('period_id', String(period.id || ''));
+    params.set('period_name', String(period.name || ''));
+    if (period.start instanceof Date && !Number.isNaN(period.start.getTime())) {
+      params.set('period_start', this.formatDate(period.start));
+    }
+    if (period.end instanceof Date && !Number.isNaN(period.end.getTime())) {
+      params.set('period_end', this.formatDate(period.end));
+    }
+    return params.toString();
+  }
+
   // ─── Notes ─────────────────────────────────────────────────────────────────
   async getGrades(period: Period): Promise<Grade[]> {
     try {
-      const resp = await this.http.get(`/grades?period_id=${encodeURIComponent(period.id)}&period_name=${encodeURIComponent(period.name)}`);
+      const resp = await this.http.get(`/grades?${this.buildPeriodQuery(period)}`);
       const data = resp.data;
       if (!Array.isArray(data) || data.length === 0) return this.getFallbackGrades(period);
       return data.map((g: Record<string, unknown>) => ({
@@ -282,7 +295,7 @@ export class PronoteClient {
 
   async getAverages(period: Period): Promise<Average[]> {
     try {
-      const resp = await this.http.get(`/averages?period_id=${encodeURIComponent(period.id)}`);
+      const resp = await this.http.get(`/averages?${this.buildPeriodQuery(period)}`);
       const data = resp.data;
       if (!Array.isArray(data) || data.length === 0) return this.getFallbackAverages();
       return data.map((a: Record<string, unknown>) => ({
@@ -487,7 +500,7 @@ export class PronoteClient {
   // ─── Absences ──────────────────────────────────────────────────────────────
   async getAbsences(period: Period): Promise<Absence[]> {
     try {
-      const resp = await this.http.get(`/absences?period_id=${encodeURIComponent(period.id)}`);
+      const resp = await this.http.get(`/absences?${this.buildPeriodQuery(period)}`);
       const data = resp.data;
       if (!Array.isArray(data)) return [];
       return data.map((a: Record<string, unknown>) => ({
@@ -507,7 +520,7 @@ export class PronoteClient {
 
   async getDelays(period: Period): Promise<Delay[]> {
     try {
-      const resp = await this.http.get(`/delays?period_id=${encodeURIComponent(period.id)}`);
+      const resp = await this.http.get(`/delays?${this.buildPeriodQuery(period)}`);
       const data = resp.data;
       if (!Array.isArray(data)) return [];
       return data.map((d: Record<string, unknown>) => ({
