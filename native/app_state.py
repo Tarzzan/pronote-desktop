@@ -5,7 +5,7 @@ Stocke le client pronotepy actif, le profil détecté et les informations utilis
 Profils supportés :
   - "student"  → pronotepy.Client
   - "parent"   → pronotepy.ParentClient
-  - "teacher"  → pronotepy.TeacherClient
+  - "teacher"  → pronotepy.TeachingStaff
 
 Signaux GObject émis :
   - "logout-requested" : émis lors de la déconnexion pour notifier la fenêtre principale.
@@ -20,7 +20,7 @@ from gi.repository import GObject
 
 
 # Type union pour tous les clients supportés
-AnyClient = Union[pronotepy.Client, pronotepy.ParentClient, pronotepy.TeacherClient]
+AnyClient = Union[pronotepy.Client, pronotepy.ParentClient, pronotepy.TeachingStaff]
 
 
 class AppState(GObject.Object):
@@ -50,6 +50,8 @@ class AppState(GObject.Object):
     """
 
     def __init__(self) -> None:
+        # IMPORTANT : appeler super().__init__() en premier pour initialiser GObject
+        super().__init__()
         # ── Client et profil ──────────────────────────────────────────────
         self.client: Optional[AnyClient] = None
         self.profile: str = ""          # "student" | "parent" | "teacher"
@@ -83,7 +85,7 @@ class AppState(GObject.Object):
         if isinstance(client, pronotepy.ParentClient):
             self.profile = "parent"
             self._extract_parent_info(client)
-        elif isinstance(client, pronotepy.TeacherClient):
+        elif isinstance(client, pronotepy.TeachingStaff):
             self.profile = "teacher"
             self._extract_teacher_info(client)
         else:
@@ -126,7 +128,7 @@ class AppState(GObject.Object):
         self.subjects = []
         self.classes = []
 
-    def _extract_teacher_info(self, client: pronotepy.TeacherClient) -> None:
+    def _extract_teacher_info(self, client: pronotepy.TeachingStaff) -> None:
         """Extrait les informations spécifiques au profil Professeur."""
         self.subjects = getattr(client, "subjects", []) or []
         self.classes = getattr(client, "classes", []) or []

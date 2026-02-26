@@ -179,9 +179,11 @@ class ContentArea(Gtk.Box):
         """Lance le chargement des données d'une page (appelé via GLib.idle_add)."""
         try:
             import inspect
-            sig = inspect.signature(instance.load_data)
+            # Inspecter la CLASSE (pas l'instance) pour éviter les segfaults GTK
+            # Sur la classe, 'self' est inclus dans les paramètres
+            sig = inspect.signature(type(instance).load_data)
             params = list(sig.parameters.keys())
-            # Certaines pages acceptent app_state en paramètre (anciennes pages)
+            # params[0] = 'self', params[1] = 'app_state' si présent
             if len(params) > 1:
                 instance.load_data(self._app_state)
             else:
