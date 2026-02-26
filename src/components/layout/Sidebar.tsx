@@ -153,6 +153,7 @@ const menuItems: MenuItem[] = [
     icon: <IconFile />,
     children: [
       { id: 'bulletin', label: 'Bulletin trimestriel', icon: <IconFile />, path: '/bulletins' },
+      { id: 'bulletin-appreciations', label: 'Appréciations', icon: <IconFile />, path: '/bulletins/appreciations' },
       { id: 'anciens-bulletins', label: 'Anciens bulletins', icon: <IconFile />, path: '/bulletins/archive' },
     ],
   },
@@ -164,6 +165,7 @@ const menuItems: MenuItem[] = [
       { id: 'referentiels', label: 'Référentiels', icon: <IconBook />, path: '/competences/referentiels' },
       { id: 'evaluations-comp', label: 'Évaluations', icon: <IconFile />, path: '/competences/evaluations' },
       { id: 'suivis-comp', label: 'Suivis', icon: <IconChart />, path: '/competences/suivis' },
+      { id: 'bilans-comp', label: 'Bilans', icon: <IconAward />, path: '/competences/bilans' },
     ],
   },
   {

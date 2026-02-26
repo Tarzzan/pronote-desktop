@@ -10,6 +10,8 @@ const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const TimetablePage = lazy(() => import("./pages/TimetablePage"));
 const TimetableMultiPage = lazy(() => import("./pages/TimetableMultiPage"));
 const GradesPage = lazy(() => import("./pages/GradesPage"));
+const GradesEditPage = lazy(() => import("./pages/GradesEditPage"));
+const GradesAppreciationsPage = lazy(() => import("./pages/GradesAppreciationsPage"));
 const HomeworkPage = lazy(() => import("./pages/HomeworkPage"));
 const HomeworkPlanningPage = lazy(() => import("./pages/HomeworkPlanningPage"));
 const HomeworkExamsPage = lazy(() => import("./pages/HomeworkExamsPage"));
@@ -17,15 +19,26 @@ const HomeworkSummaryPage = lazy(() => import("./pages/HomeworkSummaryPage"));
 const HomeworkContentPage = lazy(() => import("./pages/HomeworkContentPage"));
 const MessagingPage = lazy(() => import("./pages/MessagingPage"));
 const AttendancePage = lazy(() => import("./pages/AttendancePage"));
+const AttendanceSanctionsPage = lazy(() => import("./pages/AttendanceSanctionsPage"));
 const InformationsPage = lazy(() => import("./pages/InformationsPage"));
 const MenusPage = lazy(() => import("./pages/MenusPage"));
-const PlaceholderPage = lazy(() => import("./pages/PlaceholderPage"));
 const BulletinsPage = lazy(() => import("./pages/BulletinsPage"));
+const BulletinsAppreciationsPage = lazy(() => import("./pages/BulletinsAppreciationsPage"));
+const BulletinsArchivePage = lazy(() => import("./pages/BulletinsArchivePage"));
 const CompetencesPage = lazy(() => import("./pages/CompetencesPage"));
+const CompetencesEvaluationsPage = lazy(() => import("./pages/CompetencesEvaluationsPage"));
+const CompetencesBilansPage = lazy(() => import("./pages/CompetencesBilansPage"));
 const QCMPage = lazy(() => import("./pages/QCMPage"));
+const ForumsPage = lazy(() => import("./pages/ForumsPage"));
+const ProgressionsPage = lazy(() => import("./pages/ProgressionsPage"));
+const ProgramsPage = lazy(() => import("./pages/ProgramsPage"));
 const StudentsPage = lazy(() => import("./pages/StudentsPage"));
 const TeachersPage = lazy(() => import("./pages/TeachersPage"));
 const RoomsPage = lazy(() => import("./pages/RoomsPage"));
+const ResultsLivretPage = lazy(() => import("./pages/ResultsLivretPage"));
+const ResultsSummaryPage = lazy(() => import("./pages/ResultsSummaryPage"));
+const MeetingsPage = lazy(() => import("./pages/MeetingsPage"));
+const CasierPage = lazy(() => import("./pages/CasierPage"));
 const AttendanceCallPage = lazy(() => import("./pages/AttendanceCallPage"));
 const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const NewMessagePage = lazy(() => import("./pages/NewMessagePage"));
@@ -189,8 +202,8 @@ const App: React.FC = () => {
               <Route path="timetable" element={<TimetablePage />} />
               <Route path="timetable/multi" element={<TimetableMultiPage />} />
               <Route path="grades" element={<GradesPage />} />
-              <Route path="grades/edit" element={<PlaceholderPage />} />
-              <Route path="grades/appreciations" element={<PlaceholderPage />} />
+              <Route path="grades/edit" element={<GradesEditPage />} />
+              <Route path="grades/appreciations" element={<GradesAppreciationsPage />} />
               <Route path="homework" element={<HomeworkPage />} />
               <Route path="homework/edit" element={<HomeworkEditPage />} />
               <Route path="homework/planning" element={<HomeworkPlanningPage />} />
@@ -200,7 +213,7 @@ const App: React.FC = () => {
               <Route path="messaging" element={<MessagingPage />} />
               <Route path="attendance" element={<AttendancePage />} />
               <Route path="attendance/call" element={<AttendanceCallPage />} />
-              <Route path="attendance/sanctions" element={<PlaceholderPage />} />
+              <Route path="attendance/sanctions" element={<AttendanceSanctionsPage />} />
               <Route path="informations" element={<InformationsPage />} />
               <Route path="services" element={<MenusPage />} />
               <Route path="menus" element={<MenusPage />} />
@@ -210,21 +223,21 @@ const App: React.FC = () => {
               <Route path="resources/students" element={<StudentsPage />} />
               <Route path="resources/teachers" element={<TeachersPage />} />
               <Route path="qcm" element={<QCMPage />} />
-              <Route path="forums" element={<PlaceholderPage />} />
-              <Route path="progressions" element={<PlaceholderPage />} />
-              <Route path="programs" element={<PlaceholderPage />} />
+              <Route path="forums" element={<ForumsPage />} />
+              <Route path="progressions" element={<ProgressionsPage />} />
+              <Route path="programs" element={<ProgramsPage />} />
               <Route path="bulletins" element={<BulletinsPage />} />
-              <Route path="bulletins/appreciations" element={<PlaceholderPage />} />
-              <Route path="bulletins/archive" element={<PlaceholderPage />} />
+              <Route path="bulletins/appreciations" element={<BulletinsAppreciationsPage />} />
+              <Route path="bulletins/archive" element={<BulletinsArchivePage />} />
               <Route path="competences/referentiels" element={<CompetencesPage />} />
-              <Route path="competences/evaluations" element={<PlaceholderPage />} />
+              <Route path="competences/evaluations" element={<CompetencesEvaluationsPage />} />
               <Route path="competences/suivis" element={<CompetencesPage />} />
-              <Route path="competences/bilans" element={<PlaceholderPage />} />
-              <Route path="results/livret" element={<PlaceholderPage />} />
-              <Route path="results/summary" element={<PlaceholderPage />} />
-              <Route path="meetings" element={<PlaceholderPage />} />
+              <Route path="competences/bilans" element={<CompetencesBilansPage />} />
+              <Route path="results/livret" element={<ResultsLivretPage />} />
+              <Route path="results/summary" element={<ResultsSummaryPage />} />
+              <Route path="meetings" element={<MeetingsPage />} />
               <Route path="rooms" element={<RoomsPage />} />
-              <Route path="casier" element={<PlaceholderPage />} />
+              <Route path="casier" element={<CasierPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="messaging/new" element={<NewMessagePage />} />
             </Route>

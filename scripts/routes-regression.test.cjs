@@ -11,16 +11,30 @@ const sidebarSource = fs.readFileSync(sidebarPath, 'utf8');
 
 const routeExpectations = [
   ['timetable/multi', 'TimetableMultiPage'],
+  ['grades/edit', 'GradesEditPage'],
+  ['grades/appreciations', 'GradesAppreciationsPage'],
   ['homework/planning', 'HomeworkPlanningPage'],
   ['homework/exams', 'HomeworkExamsPage'],
   ['homework/summary', 'HomeworkSummaryPage'],
   ['homework/content', 'HomeworkContentPage'],
+  ['attendance/sanctions', 'AttendanceSanctionsPage'],
   ['students', 'StudentsPage'],
   ['trombinoscope', 'StudentsPage'],
   ['teachers', 'TeachersPage'],
   ['resources/students', 'StudentsPage'],
   ['resources/teachers', 'TeachersPage'],
+  ['forums', 'ForumsPage'],
+  ['progressions', 'ProgressionsPage'],
+  ['programs', 'ProgramsPage'],
+  ['bulletins/appreciations', 'BulletinsAppreciationsPage'],
+  ['bulletins/archive', 'BulletinsArchivePage'],
+  ['competences/evaluations', 'CompetencesEvaluationsPage'],
+  ['competences/bilans', 'CompetencesBilansPage'],
+  ['results/livret', 'ResultsLivretPage'],
+  ['results/summary', 'ResultsSummaryPage'],
+  ['meetings', 'MeetingsPage'],
   ['rooms', 'RoomsPage'],
+  ['casier', 'CasierPage'],
 ];
 
 function escapeRegex(value) {
@@ -65,4 +79,14 @@ test('new route components are lazily imported', () => {
 test('sidebar keeps access to new homework entries', () => {
   assert.match(sidebarSource, /path:\s*'\/homework\/content'/, 'missing sidebar link for homework content');
   assert.match(sidebarSource, /path:\s*'\/homework\/exams'/, 'missing sidebar link for homework exams');
+  assert.match(sidebarSource, /path:\s*'\/bulletins\/appreciations'/, 'missing sidebar link for bulletin appreciations');
+  assert.match(sidebarSource, /path:\s*'\/competences\/bilans'/, 'missing sidebar link for competences bilans');
+});
+
+test('App no longer routes any feature page to PlaceholderPage', () => {
+  assert.doesNotMatch(
+    appSource,
+    /<Route\s+path="(grades\/edit|grades\/appreciations|attendance\/sanctions|forums|progressions|programs|bulletins\/appreciations|bulletins\/archive|competences\/evaluations|competences\/bilans|results\/livret|results\/summary|meetings|casier)"\s+element=\{<PlaceholderPage\s*\/>\}\s*\/>/m,
+    'a migrated route still points to PlaceholderPage'
+  );
 });
