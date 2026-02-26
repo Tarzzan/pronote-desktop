@@ -5,10 +5,18 @@
 
 <!-- Badges dynamiques -->
 <div align="center">
-  <img src="https://img.shields.io/github/v/release/Tarzzan/pronote-desktop?style=for-the-badge&color=e94560&label=Version" alt="Version"/>
-  <img src="https://img.shields.io/github/downloads/Tarzzan/pronote-desktop/total?style=for-the-badge&color=f5a623&label=Téléchargements" alt="Téléchargements"/>
-  <img src="https://img.shields.io/github/license/Tarzzan/pronote-desktop?style=for-the-badge&color=a8d8ea&label=Licence" alt="Licence"/>
-  <img src="https://img.shields.io/github/workflow/status/Tarzzan/pronote-desktop/Build%20&%20Release%20Pronote%20Desktop?style=for-the-badge&label=Build" alt="Build Status"/>
+  <a href="https://github.com/Tarzzan/pronote-desktop/releases/latest">
+    <img src="https://img.shields.io/github/v/release/Tarzzan/pronote-desktop?style=for-the-badge&color=e94560&label=Version" alt="Version"/>
+  </a>
+  <a href="https://github.com/Tarzzan/pronote-desktop/releases">
+    <img src="https://img.shields.io/github/downloads/Tarzzan/pronote-desktop/total?style=for-the-badge&color=f5a623&label=Téléchargements" alt="Téléchargements"/>
+  </a>
+  <a href="https://github.com/Tarzzan/pronote-desktop/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/Tarzzan/pronote-desktop?style=for-the-badge&color=a8d8ea&label=Licence" alt="Licence"/>
+  </a>
+  <a href="https://github.com/Tarzzan/pronote-desktop/actions">
+    <img src="https://img.shields.io/github/actions/workflow/status/Tarzzan/pronote-desktop/build.yml?style=for-the-badge&label=Build" alt="Build Status"/>
+  </a>
 </div>
 
 <br/>
