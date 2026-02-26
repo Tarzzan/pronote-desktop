@@ -5,6 +5,22 @@ Toutes les modifications notables de ce projet sont documentées dans ce fichier
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Versionnage Sémantique](https://semver.org/lang/fr/).
 
+## [1.7.12] — 2026-02-26
+
+### Ajouté
+- **Smoke test UI e2e renforcé** : couverture des parcours de navigation latérale sur routes préfixées (`homework`, `grades`, `messaging`, `attendance`, `timetable`) avec vérification explicite de l’état actif exclusif et de l’affichage du contenu.
+- **Tests updater dédiés** : nouveau test de non-régression (`test:updates`) pour la sélection d’assets GitHub, la comparaison de versions, et la validation stricte des URL de mise à jour.
+- **Garde-fou sidebar anti-doublon** : test automatisé pour détecter les chemins de navigation dupliqués dans le menu latéral.
+
+### Corrigé
+- **Bug d’état actif multiple en sidebar** : les liens enfants utilisent désormais un matching exact (`NavLink end`) pour éviter le cas “Travail à faire + Saisie” actifs simultanément.
+- **Bug de navigation Cahier de textes** : correction du scénario `Travail à faire -> Saisie -> Travail à faire` qui pouvait laisser la zone de droite incohérente.
+- **Ambiguïtés de navigation** : suppression du doublon de route `/timetable` dans la sidebar pour éviter les sélections visuelles concurrentes.
+- **Robustesse des sélecteurs e2e** : ciblage des liens sidebar par chemin (`href`) afin d’éviter les collisions de libellés identiques (“Saisie”) entre sections.
+
+### CI
+- **Pipeline durci** : exécution systématique de `test:updates` et du smoke e2e UI dans le workflow principal avant build/release.
+
 ## [1.7.11] — 2026-02-26
 
 ### Ajouté
